@@ -1,0 +1,9 @@
+{
+    "stacks": {
+        "express@1": "/home/user/boiler/store/stacks/express@1",
+        "django@1": "/home/user/boiler/store/stacks/django@1"
+    },
+    "snippets": {
+        "errorHandler@1.js": "/home/user/.boiler/store/snippets/js/errorHandler@1.js.bl"
+    }
+}
