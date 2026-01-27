@@ -4,6 +4,11 @@
 export async function onRequest(context) {
   const url = new URL(context.request.url);
   
+  // Skip /install route (handled by install.js)
+  if (url.pathname === '/install') {
+    return context.next();
+  }
+  
   // Root redirect
   if (url.pathname === '/' || url.pathname === '') {
     return Response.redirect('https://github.com/rishiyaduwanshi/boiler', 302);

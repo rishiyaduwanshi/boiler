@@ -5,9 +5,12 @@ export async function onRequest(context) {
   const userAgent = context.request.headers.get('User-Agent') || '';
   
   // Detect OS from User-Agent
+  // PowerShell's Invoke-WebRequest uses "Mozilla/5.0 (Windows NT...)"
   const isWindows = userAgent.includes('Windows') || 
                     userAgent.includes('PowerShell') ||
-                    userAgent.includes('WindowsPowerShell');
+                    userAgent.includes('WindowsPowerShell') ||
+                    userAgent.includes('Win64') ||
+                    userAgent.includes('Win32');
   
   // GitHub raw content URL
   const baseUrl = 'https://raw.githubusercontent.com/rishiyaduwanshi/boiler/main/scripts';
