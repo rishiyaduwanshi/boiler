@@ -33,7 +33,8 @@ try {
 }
 
 # Download binary
-$tempFile = "$env:TEMP\bl-download"
+$extension = if ($asset.name -like "*.zip") { ".zip" } else { ".exe" }
+$tempFile = "$env:TEMP\bl-download$extension"
 Write-Host "Downloading $version..." -ForegroundColor Yellow
 Invoke-WebRequest -Uri $downloadUrl -OutFile $tempFile
 
