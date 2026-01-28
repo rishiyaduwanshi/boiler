@@ -2,7 +2,10 @@ package cli
 
 import (
 	"fmt"
+	"os"
+	"strings"
 
+	"github.com/rishiyaduwanshi/boiler/internal/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -13,8 +16,68 @@ var searchCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		query := args[0]
 		logger.Info(fmt.Sprintf("Searching for: %s", query))
-		fmt.Printf("Searching for %s (implementation in progress)\n", query)
+
+		if err := searchResources(query); err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
 	},
+}
+
+func searchResources(query string) error {
+	st, err := utils.LoadStore(cfg.Paths.Store)
+	if err != nil {
+		return err
+	}
+
+	query = strings.ToLower(query)
+	foundAny := false
+
+	// Search snippets
+	if !searchStacks {
+		snippets := st.ListSnippets()
+		matches := []string{}
+		for _, name := range snippets {
+			if strings.Contains(strings.ToLower(name), query) {
+				matches = append(matches, name)
+			}
+		}
+
+		if len(matches) > 0 {
+			foundAny = true
+			fmt.Println("\n📄 Snippets:")
+			for _, name := range matches {
+				fmt.Printf("  • %s\n", name)
+			}
+		}
+	}
+
+	// Search stacks
+	if !searchSnippets {
+		stacks := st.ListStacks()
+		matches := []string{}
+		for _, name := range stacks {
+			if strings.Contains(strings.ToLower(name), query) {
+				matches = append(matches, name)
+			}
+		}
+
+		if len(matches) > 0 {
+			foundAny = true
+			fmt.Println("\n📦 Stacks:")
+			for _, name := range matches {
+				fmt.Printf("  • %s\n", name)
+			}
+		}
+	}
+
+	if !foundAny {
+		fmt.Printf("No results found for '%s'\n", query)
+	} else {
+		fmt.Println()
+	}
+
+	return nil
 }
 
 var (

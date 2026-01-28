@@ -34,12 +34,13 @@ func ShowBanner() {
 ██████╔╝██║   ██║██║██║     █████╗  ██████╔╝
 ██╔══██╗██║   ██║██║██║     ██╔══╝  ██╔══██╗
 ██████╔╝╚██████╔╝██║███████╗███████╗██║  ██║
-╚═════╝  ╚═════╝ ╚═╝╚══════╝╚══════╝╚═╝  ╚═╝`
+╚═════╝  ╚═════╝ ╚═╝╚══════╝╚══════╝╚═╝  ╚═╝                                   
+`
 
 	fmt.Println(primaryStyle.Render(art))
 	fmt.Println(subtitleStyle.Render("Code Snippet & Stack Manager"))
 	fmt.Print(secondaryStyle.Render("Version: "))
-	fmt.Println(versionStyle.Render("v" + version.Version))
+	fmt.Println(versionStyle.Render(version.Version))
 	fmt.Println(authorStyle.Render("by Abhinav Prakash"))
 }
 

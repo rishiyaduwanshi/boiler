@@ -3,7 +3,7 @@ package cli
 import (
 	"fmt"
 
-	"github.com/rishiyaduwanshi/boiler/internal/store"
+	"github.com/rishiyaduwanshi/boiler/internal/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -12,8 +12,8 @@ var listCmd = &cobra.Command{
 	Aliases: []string{"list"},
 	Short:   "List snippets or stacks",
 	Run: func(cmd *cobra.Command, args []string) {
-		st := store.NewStore(cfg.Paths.Store)
-		if err := st.Load(); err != nil {
+		st, err := utils.LoadStore(cfg.Paths.Store)
+		if err != nil {
 			fmt.Printf("Error loading store: %v\n", err)
 			return
 		}
