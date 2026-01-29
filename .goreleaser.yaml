@@ -1,0 +1,87 @@
+# GoReleaser configuration
+version: 2
+
+before:
+  hooks:
+    - go mod tidy
+    - go run gendocs.go
+
+builds:
+  - main: ./main.go
+    binary: bl
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X github.com/rishiyaduwanshi/boiler/pkg/version.Version={{.Version}}
+      - -X github.com/rishiyaduwanshi/boiler/pkg/version.Commit={{.Commit}}
+      - -X github.com/rishiyaduwanshi/boiler/pkg/version.Date={{.Date}}
+
+archives:
+  - format: tar.gz
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - README.md
+      - LICENSE
+      - scripts/*
+
+checksum:
+  name_template: 'checksums.txt'
+  algorithm: sha256
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+      - '^style:'
+
+release:
+  github:
+    owner: rishiyaduwanshi
+    name: boiler
+  draft: false
+  prerelease: auto
+  name_template: "{{.ProjectName}} {{.Version}}"
+  header: |
+    ## Installation
+    
+    ### Windows
+    ```powershell
+    iwr -useb https://boiler.iamabhinav.dev/install | iex
+    ```
+    
+    ### Linux/macOS
+    ```bash
+    curl -fsSL https://boiler.iamabhinav.dev/install | bash
+    ```
+    
+    ### Manual Download
+    Download the appropriate binary for your platform below.
+
+# Announce to Discord/Slack (optional)
+# announce:
+#   discord:
+#     enabled: true
+#     message_template: 'Boiler {{.Tag}} is out! Check it out at {{ .ReleaseURL }}'

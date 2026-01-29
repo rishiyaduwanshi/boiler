@@ -47,16 +47,24 @@ if [ "$cleanup" = "2" ]; then
     read -p "Type 'DELETE' to confirm complete cleanup: " finalConfirm
     
     if [ "$finalConfirm" = "DELETE" ]; then
-        # Remove entire .boiler directory
-        if [ -d "$ROOT_DIR" ]; then
-            echo "Removing all Boiler files..."
-            rm -rf "$ROOT_DIR"
-        fi
+        echo "Removing all Boiler files..."
         
-        # Clean temp files
-        echo "Cleaning temporary files..."
-        rm -f /tmp/bl-* 2>/dev/null || true
-        rm -f /tmp/boiler-* 2>/dev/null || true
+        # Create cleanup script to run after current process exits
+        CLEANUP_SCRIPT="/tmp/boiler-cleanup-$RANDOM.sh"
+        cat > "$CLEANUP_SCRIPT" << 'CLEANUP_EOF'
+#!/bin/bash
+sleep 2
+echo "Finalizing cleanup..."
+rm -rf "$HOME/.boiler" 2>/dev/null || true
+rm -f /tmp/bl-* 2>/dev/null || true
+rm -f /tmp/boiler-* 2>/dev/null || true
+echo "Cleanup complete!"
+CLEANUP_EOF
+        
+        chmod +x "$CLEANUP_SCRIPT"
+        
+        # Run cleanup in background and exit immediately
+        nohup "$CLEANUP_SCRIPT" >/dev/null 2>&1 &
         
         echo ""
         echo "[SUCCESS] Complete cleanup done! Boiler completely removed."

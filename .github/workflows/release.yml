@@ -4,99 +4,31 @@ on:
   push:
     tags:
       - 'v*'
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: 'Tag version (e.g., v0.1.0)'
-        required: true
-        type: string
 
 permissions:
   contents: write
 
 jobs:
-  build:
-    name: Build Binaries
+  goreleaser:
+    name: Release with GoReleaser
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        include:
-          - os: windows
-            arch: amd64
-            ext: .exe
-          - os: linux
-            arch: amd64
-            ext: ''
-          - os: linux
-            arch: arm64
-            ext: ''
-          - os: darwin
-            arch: amd64
-            ext: ''
-          - os: darwin
-            arch: arm64
-            ext: ''
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.25.5'
 
-      - name: Build binary
-        env:
-          GOOS: ${{ matrix.os }}
-          GOARCH: ${{ matrix.arch }}
-          CGO_ENABLED: 0
-        run: |
-          VERSION=${{ github.event.inputs.tag || github.ref_name }}
-          go build -o bl${{ matrix.ext }} \
-            -ldflags="-s -w -X github.com/rishiyaduwanshi/boiler/pkg/version.Version=$VERSION" \
-            .
-          
-      - name: Package binary
-        run: |
-          if [ "${{ matrix.os }}" = "windows" ]; then
-            cp scripts/boiler.cmd boiler.cmd
-            zip boiler-${{ matrix.os }}-${{ matrix.arch }}.zip bl${{ matrix.ext }} boiler.cmd
-          else
-            cp scripts/boiler boiler
-            chmod +x boiler
-            tar -czf boiler-${{ matrix.os }}-${{ matrix.arch }}.tar.gz bl${{ matrix.ext }} boiler
-          fi
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v6
         with:
-          name: boiler-${{ matrix.os }}-${{ matrix.arch }}
-          path: boiler-${{ matrix.os }}-${{ matrix.arch }}.*
-
-  release:
-    name: Create Release
-    needs: build
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: dist
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
-          files: |
-            dist/**/*.zip
-            dist/**/*.tar.gz
-          generate_release_notes: true
-          draft: false
-          prerelease: false
+          distribution: goreleaser
+          version: '~> v2'
+          args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

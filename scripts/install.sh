@@ -35,10 +35,48 @@ fi
 
 VERSION=$(curl -s $RELEASE_URL | grep '"tag_name"' | cut -d '"' -f 4)
 
+# Download checksums
+echo "Downloading checksums..."
+CHECKSUM_URL="https://github.com/$REPO/releases/download/$VERSION/checksums.txt"
+CHECKSUM_FILE="/tmp/bl-checksums.txt"
+if curl -fsSL "$CHECKSUM_URL" -o "$CHECKSUM_FILE" 2>/dev/null; then
+    echo "Checksums downloaded"
+else
+    echo "Warning: Could not download checksums, skipping verification"
+    CHECKSUM_FILE=""
+fi
+
 # Download binary
 echo "Downloading $VERSION..."
 TEMP_FILE="/tmp/bl-download"
 curl -fsSL "$DOWNLOAD_URL" -o "$TEMP_FILE"
+
+# Verify checksum
+if [ -n "$CHECKSUM_FILE" ] && [ -f "$CHECKSUM_FILE" ]; then
+    echo "Verifying checksum..."
+    EXPECTED_HASH=$(grep "$(basename "$DOWNLOAD_URL")" "$CHECKSUM_FILE" | awk '{print $1}')
+    
+    if command -v sha256sum >/dev/null 2>&1; then
+        ACTUAL_HASH=$(sha256sum "$TEMP_FILE" | awk '{print $1}')
+    elif command -v shasum >/dev/null 2>&1; then
+        ACTUAL_HASH=$(shasum -a 256 "$TEMP_FILE" | awk '{print $1}')
+    else
+        echo "Warning: No checksum tool found, skipping verification"
+        ACTUAL_HASH=""
+    fi
+    
+    if [ -n "$ACTUAL_HASH" ] && [ "$ACTUAL_HASH" = "$EXPECTED_HASH" ]; then
+        echo "Checksum verified [OK]"
+    elif [ -n "$ACTUAL_HASH" ]; then
+        echo "ERROR: Checksum mismatch!"
+        echo "Expected: $EXPECTED_HASH"
+        echo "Got:      $ACTUAL_HASH"
+        rm -f "$TEMP_FILE" "$CHECKSUM_FILE"
+        exit 1
+    fi
+    
+    rm -f "$CHECKSUM_FILE"
+fi
 
 # Install binary
 if file "$TEMP_FILE" | grep -q "gzip"; then

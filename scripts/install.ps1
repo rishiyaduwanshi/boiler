@@ -45,8 +45,21 @@ try {
 }
 Write-Host ""
 
+# Download checksums file
+Write-Host "[3/6] Downloading checksums..." -ForegroundColor Yellow
+$checksumUrl = "https://github.com/$REPO/releases/download/$version/checksums.txt"
+$checksumFile = "$env:TEMP\bl-checksums.txt"
+try {
+    Invoke-WebRequest -Uri $checksumUrl -OutFile $checksumFile -ErrorAction Stop
+    Write-Host "      Checksums downloaded" -ForegroundColor Gray
+} catch {
+    Write-Host "      [WARNING] Could not download checksums, skipping verification" -ForegroundColor Yellow
+    $checksumFile = $null
+}
+Write-Host ""
+
 # Download binary
-Write-Host "[3/5] Downloading binary..." -ForegroundColor Yellow
+Write-Host "[4/6] Downloading binary..." -ForegroundColor Yellow
 $extension = if ($asset.name -like "*.zip") { ".zip" } else { ".exe" }
 $tempFile = "$env:TEMP\bl-download$extension"
 Write-Host "      Downloading from GitHub..." -ForegroundColor Gray
@@ -54,8 +67,27 @@ Invoke-WebRequest -Uri $downloadUrl -OutFile $tempFile
 Write-Host "      Download complete" -ForegroundColor Gray
 Write-Host ""
 
+# Verify checksum
+if ($checksumFile -and (Test-Path $checksumFile)) {
+    Write-Host "      Verifying checksum..." -ForegroundColor Gray
+    $fileHash = (Get-FileHash -Path $tempFile -Algorithm SHA256).Hash.ToLower()
+    $expectedHash = (Get-Content $checksumFile | Select-String $asset.name).Line.Split()[0]
+    
+    if ($fileHash -eq $expectedHash) {
+        Write-Host "      Checksum verified [OK]" -ForegroundColor Green
+    } else {
+        Write-Host "      [ERROR] Checksum mismatch!" -ForegroundColor Red
+        Write-Host "      Expected: $expectedHash" -ForegroundColor Red
+        Write-Host "      Got:      $fileHash" -ForegroundColor Red
+        Remove-Item $tempFile -Force
+        exit 1
+    }
+    Remove-Item $checksumFile -Force
+}
+Write-Host ""
+
 # Install binary
-Write-Host "[4/5] Installing binary..." -ForegroundColor Yellow
+Write-Host "[5/6] Installing binary..." -ForegroundColor Yellow
 if ($asset.name -like "*.zip") {
     Write-Host "      Extracting archive..." -ForegroundColor Gray
     Expand-Archive -Path $tempFile -DestinationPath $INSTALL_DIR -Force
@@ -75,7 +107,7 @@ Write-Host "      Alias created: boiler -> bl" -ForegroundColor Gray
 Write-Host ""
 
 # Add to PATH if not already present
-Write-Host "[5/5] Configuring PATH..." -ForegroundColor Yellow
+Write-Host "[6/6] Configuring PATH..." -ForegroundColor Yellow
 $currentPath = [Environment]::GetEnvironmentVariable("Path", "User")
 if ($currentPath -notlike "*$INSTALL_DIR*") {
     [Environment]::SetEnvironmentVariable(
