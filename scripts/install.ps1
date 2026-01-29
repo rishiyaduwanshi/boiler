@@ -31,13 +31,19 @@ try {
     $release = Invoke-RestMethod -Uri $releaseUrl
     $version = $release.tag_name
     Write-Host "      Found version: $version" -ForegroundColor Gray
-    $asset = $release.assets | Where-Object { $_.name -like "*windows*.zip" -or $_.name -like "*windows*.exe" -or $_.name -like "*bl.exe*" } | Select-Object -First 1
+    
+    # Detect architecture
+    $arch = if ([Environment]::Is64BitOperatingSystem) { "x86_64" } else { "i386" }
+    
+    # Find matching Windows binary
+    $asset = $release.assets | Where-Object { $_.name -like "*Windows*$arch*.zip" } | Select-Object -First 1
     
     if (!$asset) {
-        throw "No Windows binary found in release"
+        throw "No Windows $arch binary found in release"
     }
     
     $downloadUrl = $asset.browser_download_url
+    Write-Host "      Downloading: $($asset.name)" -ForegroundColor Gray
 } catch {
     Write-Host "      [ERROR] No releases found" -ForegroundColor Red
     Write-Host "      Please check https://github.com/$REPO/releases" -ForegroundColor Red
