@@ -4,6 +4,7 @@ version: 2
 before:
   hooks:
     - go mod tidy
+    - go get github.com/spf13/cobra/doc@v1.10.2
     - go run gendocs.go
 
 builds:
