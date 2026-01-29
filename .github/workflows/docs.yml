@@ -8,12 +8,17 @@ on:
       - 'internal/cli/*.go'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   generate-docs:
     runs-on: ubuntu-latest
     
     steps:
       - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
       
       - uses: actions/setup-go@v5
         with:
