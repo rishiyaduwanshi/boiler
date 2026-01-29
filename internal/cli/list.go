@@ -11,6 +11,18 @@ var listCmd = &cobra.Command{
 	Use:     "ls",
 	Aliases: []string{"list"},
 	Short:   "List snippets or stacks",
+	Long: `List all stored snippets and stacks with their version numbers.
+
+By default, shows both snippets and stacks. Use flags to filter by type.
+All resources are shown with version numbers included.`,
+	Example: `  # List everything
+  bl ls
+
+  # List only snippets
+  bl ls --snippets
+
+  # List only stacks
+  bl ls --stacks`,
 	Run: func(cmd *cobra.Command, args []string) {
 		st, err := utils.LoadStore(cfg.Paths.Store)
 		if err != nil {

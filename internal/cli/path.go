@@ -9,6 +9,20 @@ import (
 var pathCmd = &cobra.Command{
 	Use:   "path",
 	Short: "Show boiler installation path",
+	Long: `Display all Boiler installation paths.
+
+Shows:
+  - Root - Main Boiler directory
+  - Store - Where resources are stored
+  - Snippets - Snippet storage location
+  - Stacks - Stack storage location
+  - Logs - Log file directory
+  - Bin - Executable location`,
+	Example: `  # Show all paths
+  bl path
+
+  # Use in scripts
+  cd $(bl path | grep Store | cut -d: -f2)`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Printf("Boiler root: %s\n", cfg.Paths.Root)
 		fmt.Printf("Store:       %s\n", cfg.Paths.Store)

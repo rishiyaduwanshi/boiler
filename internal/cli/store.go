@@ -21,6 +21,27 @@ var (
 var storeCmd = &cobra.Command{
 	Use:   "store [path]",
 	Short: "Store a folder/file as snippet or stack",
+	Long: `Store a file as a snippet or directory as a stack in your Boiler store.
+
+Files are stored as snippets with version numbers.
+Directories are stored as stacks with version numbers.
+
+If a resource with the same name exists, you'll be prompted to either:
+  - Create a new version (v)
+  - Overwrite existing (o)
+
+Ignored patterns: node_modules, .git, .DS_Store, Thumbs.db, vendor, __pycache__, .vscode`,
+	Example: `  # Store current directory as stack
+  bl store
+
+  # Store specific file as snippet
+  bl store ./utils/logger.js
+
+  # Store directory as stack
+  bl store ./my-template
+
+  # Store with custom name
+  bl store ./config.js --name dbConfig.js`,
 	Args:  cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		path := "."

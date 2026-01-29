@@ -11,6 +11,20 @@ import (
 var initCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Initialize boiler in current directory",
+	Long: `Initialize Boiler by creating necessary directories and configuration files.
+
+This sets up:
+  - Store directory for snippets and stacks
+  - Configuration file
+  - Metadata tracking
+  - Log directory
+
+Run this once before using other Boiler commands.`,
+	Example: `  # Initialize Boiler
+  bl init
+
+  # After init, you can start storing resources
+  bl store ./utils/logger.js`,
 	Run: func(cmd *cobra.Command, args []string) {
 		logger.Info("Initializing boiler")
 

@@ -13,6 +13,27 @@ import (
 var addCmd = &cobra.Command{
 	Use:   "add [resource]",
 	Short: "Add a snippet or stack to current directory",
+	Long: `Add a stored snippet or stack to your current directory.
+
+The command copies resources from your store. For snippets with a single version,
+you can use just the name (e.g., 'errorHandler' will auto-select version 1).
+For multiple versions, you'll be prompted to choose.
+
+Stacks are also versioned and can be added by name or with explicit version.`,
+	Example: `  # Add snippet (auto-detects if single version)
+  bl add errorHandler
+
+  # Add specific version
+  bl add logger@2.js
+
+  # Add to specific directory
+  bl add config --to ./src/utils
+
+  # Add stack
+  bl add express-api@1
+
+  # Force overwrite
+  bl add middleware --force`,
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		resource := args[0]
@@ -37,10 +58,63 @@ func addResource(resource string) error {
 		destPath = "."
 	}
 
+	// If resource has extension, it's a snippet
 	if store.IsSnippet(resource) {
 		return addSnippet(st, fullName, destPath)
 	}
-	return addStack(st, fullName, destPath)
+
+	// No extension - could be stack or snippet name without version
+	// First check if it exists as a stack
+	_, stackExists := st.GetStack(resource)
+	if stackExists {
+		return addStack(st, resource, destPath)
+	}
+
+	// Not a stack, try to find matching snippets
+	matchingSnippets := findMatchingSnippets(st, resource)
+	if len(matchingSnippets) == 0 {
+		return fmt.Errorf(utils.ErrResourceNotFound, "stack or snippet", resource)
+	}
+
+	// If only one version exists, use it automatically
+	if len(matchingSnippets) == 1 {
+		return addSnippet(st, matchingSnippets[0], destPath)
+	}
+
+	// Multiple versions - prompt user to choose
+	fmt.Printf("Multiple versions found for '%s':\n", resource)
+	for i, name := range matchingSnippets {
+		fmt.Printf("  %d. %s\n", i+1, name)
+	}
+
+	choice, err := utils.Prompt(fmt.Sprintf("Enter version number (1-%d): ", len(matchingSnippets)))
+	if err != nil {
+		return fmt.Errorf("failed to read input: %w", err)
+	}
+
+	// Parse choice
+	var selectedIdx int
+	fmt.Sscanf(choice, "%d", &selectedIdx)
+	if selectedIdx < 1 || selectedIdx > len(matchingSnippets) {
+		return fmt.Errorf("invalid choice")
+	}
+
+	return addSnippet(st, matchingSnippets[selectedIdx-1], destPath)
+}
+
+// findMatchingSnippets finds all snippets that match the given name (without version/extension)
+func findMatchingSnippets(st *store.Store, name string) []string {
+	allSnippets := st.ListSnippets()
+	var matches []string
+
+	for _, snippet := range allSnippets {
+		snippetName, _, _ := store.ParseResourceName(snippet)
+		if snippetName == name {
+			matches = append(matches, snippet)
+		}
+	}
+
+	return matches
 }
 
 func addSnippet(st *store.Store, name, destPath string) error {

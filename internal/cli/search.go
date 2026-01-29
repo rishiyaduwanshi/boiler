@@ -12,6 +12,21 @@ import (
 var searchCmd = &cobra.Command{
 	Use:   "search [query]",
 	Short: "Search for snippets or stacks",
+	Long: `Search for resources in your store by name.
+
+Searches both snippets and stacks by default. Use flags to filter:
+  - Use -s or --snippets to search only snippets
+  - Use -k or --stacks to search only stacks
+
+Search is case-insensitive and matches partial names.`,
+	Example: `  # Search for anything with 'error'
+  bl search error
+
+  # Search only snippets
+  bl search logger --snippets
+
+  # Search only stacks
+  bl search express --stacks`,
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		query := args[0]

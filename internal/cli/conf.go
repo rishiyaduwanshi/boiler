@@ -12,6 +12,22 @@ import (
 var confCmd = &cobra.Command{
 	Use:   "conf",
 	Short: "Manage boiler configuration",
+	Long: `View and manage Boiler configuration.
+
+You can:
+  - View current configuration (default)
+  - Edit config in default editor (use -e or --edit)
+  - Reset to defaults (use -r or --reset)
+
+Configuration includes paths, preferences, and behavior settings.`,
+	Example: `  # Show configuration
+  bl conf
+
+  # Edit configuration
+  bl conf --edit
+
+  # Reset to defaults
+  bl conf --reset`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Default behavior: show config
 		showConfig()

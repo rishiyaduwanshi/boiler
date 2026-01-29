@@ -13,6 +13,29 @@ import (
 var cleanCmd = &cobra.Command{
 	Use:   "clean [resource]",
 	Short: "Clean snippets, stacks, or store",
+	Long: `Remove snippets, stacks, or clear entire store.
+
+You can:
+  - Remove specific resource by name
+  - Remove all snippets (use -s or --snippets flag)
+  - Remove all stacks (use -k or --stacks flag)
+  - Clear everything (use -a or --all flag)
+
+Version-specific deletion is supported.`,
+	Example: `  # Remove specific snippet
+  bl clean errorHandler@1.js
+
+  # Remove specific stack
+  bl clean express-api@1
+
+  # Remove all snippets
+  bl clean --snippets
+
+  # Remove all stacks
+  bl clean --stacks
+
+  # Clear entire store
+  bl clean --all`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) > 0 {
 			resource := args[0]
