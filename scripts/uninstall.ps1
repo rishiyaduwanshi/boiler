@@ -59,16 +59,25 @@ if ($cleanup -eq "2") {
     
     if ($finalConfirm -eq "DELETE") {
         Write-Host "[3/3] Removing all files..." -ForegroundColor Yellow
-        # Remove entire .boiler directory
-        if (Test-Path $ROOT_DIR) {
-            Write-Host "      Deleting $ROOT_DIR..." -ForegroundColor Gray
-            Remove-Item -Path $ROOT_DIR -Recurse -Force -ErrorAction SilentlyContinue
-        }
         
-        # Clean temp files
+        # Create cleanup script to run after current process exits
+        $cleanupScript = @"
+Start-Sleep -Seconds 2
+if (Test-Path '$ROOT_DIR') {
+    Remove-Item -Path '$ROOT_DIR' -Recurse -Force -ErrorAction SilentlyContinue
+}
+Get-ChildItem -Path '$TEMP_DIR' -Filter 'bl-*' -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+Get-ChildItem -Path '$TEMP_DIR' -Filter 'boiler-*' -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+"@
+        
+        $cleanupPath = "$TEMP_DIR\boiler-cleanup-$((Get-Random)).ps1"
+        $cleanupScript | Out-File -FilePath $cleanupPath -Encoding UTF8
+        
+        Write-Host "      Deleting $ROOT_DIR..." -ForegroundColor Gray
         Write-Host "      Cleaning temporary files..." -ForegroundColor Gray
-        Get-ChildItem -Path $TEMP_DIR -Filter "bl-*" -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
-        Get-ChildItem -Path $TEMP_DIR -Filter "boiler-*" -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+        
+        # Start cleanup script in background and exit immediately
+        Start-Process powershell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$cleanupPath`"" -WindowStyle Hidden
         
         Write-Host ""
         Write-Host "================================================" -ForegroundColor Green
