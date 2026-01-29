@@ -1,0 +1,38 @@
+name: Generate Docs
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'internal/cli/*.go'
+  workflow_dispatch:
+
+jobs:
+  generate-docs:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.5'
+      
+      - name: Generate docs
+        run: go run gendocs.go
+      
+      - name: Commit docs
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add web/src/content/docs/commands/*.md
+          
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            COMMIT_MSG="docs: github-actions generate command documentation (manual)"
+          else
+            COMMIT_MSG="docs: github-actions generate command documentation (auto)"
+          fi
+          
+          git diff --quiet && git diff --staged --quiet || git commit -m "$COMMIT_MSG"
+          git push
