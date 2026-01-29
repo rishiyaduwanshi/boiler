@@ -72,4 +72,5 @@ func init() {
 	rootCmd.AddCommand(searchCmd)
 	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(pathCmd)
+	rootCmd.AddCommand(selfCmd)
 }

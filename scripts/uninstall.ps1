@@ -1,40 +1,101 @@
 # Boiler Uninstallation Script (Windows PowerShell)
 
-Write-Host "Uninstalling Boiler CLI..." -ForegroundColor Cyan
+# Display banner
+Write-Host ""
+Write-Host "================================================" -ForegroundColor Red
+Write-Host "         Boiler CLI Uninstaller                " -ForegroundColor Red
+Write-Host "================================================" -ForegroundColor Red
+Write-Host ""
 
 $INSTALL_DIR = "$env:USERPROFILE\.boiler\bin"
-$CONFIG_DIR = "$env:USERPROFILE\.boiler"
+$ROOT_DIR = "$env:USERPROFILE\.boiler"
+$TEMP_DIR = "$env:TEMP"
 
 # Ask for confirmation
-$confirm = Read-Host "This will remove Boiler and all its data. Continue? (y/N)"
+Write-Host "This will remove Boiler from your system." -ForegroundColor Yellow
+Write-Host ""
+$confirm = Read-Host "Continue? (y/N)"
 if ($confirm -ne "y" -and $confirm -ne "Y") {
+    Write-Host ""
     Write-Host "Uninstallation cancelled." -ForegroundColor Yellow
+    Write-Host ""
     exit 0
 }
 
+Write-Host ""
+Write-Host "[1/3] Removing from PATH..." -ForegroundColor Yellow
 # Remove from PATH
 $currentPath = [Environment]::GetEnvironmentVariable("Path", "User")
 if ($currentPath -like "*$INSTALL_DIR*") {
-    Write-Host "Removing from PATH..." -ForegroundColor Yellow
     $newPath = ($currentPath -split ';' | Where-Object { $_ -ne $INSTALL_DIR }) -join ';'
     [Environment]::SetEnvironmentVariable("Path", $newPath, "User")
+    Write-Host "      PATH cleaned" -ForegroundColor Gray
+} else {
+    Write-Host "      Not in PATH" -ForegroundColor Gray
 }
+Write-Host ""
 
-# Remove binary directory
-if (Test-Path $INSTALL_DIR) {
-    Write-Host "Removing binary directory..." -ForegroundColor Yellow
-    Remove-Item -Path $INSTALL_DIR -Recurse -Force
-}
+# Ask about complete cleanup
+Write-Host "[2/3] Cleanup options:" -ForegroundColor Yellow
+Write-Host ""
+Write-Host "  1. Keep my data (only remove binary)" -ForegroundColor White
+Write-Host "  2. Delete everything (complete cleanup)" -ForegroundColor White
+Write-Host ""
+$cleanup = Read-Host "Choose option (1/2)"
+Write-Host ""
 
-# Ask about config/data
-$removeData = Read-Host "Remove config and store data? (y/N)"
-if ($removeData -eq "y" -or $removeData -eq "Y") {
-    if (Test-Path $CONFIG_DIR) {
-        Write-Host "Removing config directory..." -ForegroundColor Yellow
-        Remove-Item -Path $CONFIG_DIR -Recurse -Force
+if ($cleanup -eq "2") {
+    # Complete cleanup - remove EVERYTHING
+    Write-Host "[WARNING] This will permanently delete:" -ForegroundColor Red
+    Write-Host "  - All snippets and stacks" -ForegroundColor Yellow
+    Write-Host "  - Configuration files" -ForegroundColor Yellow
+    Write-Host "  - Log files" -ForegroundColor Yellow
+    Write-Host "  - Binary files" -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "This action cannot be undone!" -ForegroundColor Red
+    Write-Host ""
+    $finalConfirm = Read-Host "Type 'DELETE' to confirm"
+    Write-Host ""
+    
+    if ($finalConfirm -eq "DELETE") {
+        Write-Host "[3/3] Removing all files..." -ForegroundColor Yellow
+        # Remove entire .boiler directory
+        if (Test-Path $ROOT_DIR) {
+            Write-Host "      Deleting $ROOT_DIR..." -ForegroundColor Gray
+            Remove-Item -Path $ROOT_DIR -Recurse -Force -ErrorAction SilentlyContinue
+        }
+        
+        # Clean temp files
+        Write-Host "      Cleaning temporary files..." -ForegroundColor Gray
+        Get-ChildItem -Path $TEMP_DIR -Filter "bl-*" -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+        Get-ChildItem -Path $TEMP_DIR -Filter "boiler-*" -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+        
+        Write-Host ""
+        Write-Host "================================================" -ForegroundColor Green
+        Write-Host "   Complete Cleanup Done!                     " -ForegroundColor Green
+        Write-Host "================================================" -ForegroundColor Green
+        Write-Host ""
+        Write-Host "Boiler has been completely removed from your system." -ForegroundColor White
+    } else {
+        Write-Host "Complete cleanup cancelled." -ForegroundColor Yellow
+        exit 0
     }
+} else {
+    Write-Host "[3/3] Removing binary..." -ForegroundColor Yellow
+    # Only remove binary
+    if (Test-Path $INSTALL_DIR) {
+        Write-Host "      Deleting binary files..." -ForegroundColor Gray
+        Remove-Item -Path $INSTALL_DIR -Recurse -Force -ErrorAction SilentlyContinue
+    }
+    
+    Write-Host ""
+    Write-Host "================================================" -ForegroundColor Green
+    Write-Host "   Binary Removed!                            " -ForegroundColor Green
+    Write-Host "================================================" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "Your data is preserved in:" -ForegroundColor White
+    Write-Host "  $ROOT_DIR" -ForegroundColor Cyan
 }
 
 Write-Host ""
-Write-Host "✓ Boiler uninstalled successfully!" -ForegroundColor Green
 Write-Host "Restart your terminal for PATH changes to take effect." -ForegroundColor Yellow

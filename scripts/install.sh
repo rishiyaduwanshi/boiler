@@ -81,11 +81,22 @@ fi
 CONFIG_DIR="$HOME/.boiler"
 mkdir -p "$CONFIG_DIR"
 
+# Download uninstall script for offline use
+echo "Downloading uninstall script..."
+UNINSTALL_URL="https://raw.githubusercontent.com/$REPO/main/scripts/uninstall.sh"
+if curl -fsSL "$UNINSTALL_URL" -o "$INSTALL_DIR/uninstall.sh" 2>/dev/null; then
+    chmod +x "$INSTALL_DIR/uninstall.sh"
+else
+    echo "Warning: Could not download uninstall script. You can use 'bl self uninstall' instead."
+fi
+
 echo ""
-echo "✓ Boiler installed successfully!"
+echo "[SUCCESS] Boiler installed successfully!"
 echo ""
 echo "Installation directory: $INSTALL_DIR"
 echo "Config directory: $CONFIG_DIR"
 echo ""
 echo "Run 'bl version' or 'boiler version' to verify installation."
 echo "Run 'bl --help' to get started."
+echo ""
+echo "To uninstall: Run 'bl self uninstall' or '$INSTALL_DIR/uninstall.sh'"
