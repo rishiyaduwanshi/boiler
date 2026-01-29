@@ -80,7 +80,23 @@ fi
 
 # Install binary
 if file "$TEMP_FILE" | grep -q "gzip"; then
-    tar -xzf "$TEMP_FILE" -C "$INSTALL_DIR"
+    echo "Extracting archive..."
+    TEMP_EXTRACT="/tmp/bl-extract-$$"
+    mkdir -p "$TEMP_EXTRACT"
+    tar -xzf "$TEMP_FILE" -C "$TEMP_EXTRACT"
+    
+    # Find and copy only bl binary
+    BL_PATH=$(find "$TEMP_EXTRACT" -name "bl" -type f | head -n 1)
+    if [ -n "$BL_PATH" ]; then
+        cp "$BL_PATH" "$INSTALL_DIR/$BINARY_NAME"
+    else
+        echo "ERROR: bl binary not found in archive"
+        rm -rf "$TEMP_EXTRACT"
+        exit 1
+    fi
+    
+    rm -rf "$TEMP_EXTRACT"
+    rm -f "$TEMP_FILE"
 else
     mv "$TEMP_FILE" "$INSTALL_DIR/$BINARY_NAME"
 fi

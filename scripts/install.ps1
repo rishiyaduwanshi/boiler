@@ -90,7 +90,19 @@ Write-Host ""
 Write-Host "[5/6] Installing binary..." -ForegroundColor Yellow
 if ($asset.name -like "*.zip") {
     Write-Host "      Extracting archive..." -ForegroundColor Gray
-    Expand-Archive -Path $tempFile -DestinationPath $INSTALL_DIR -Force
+    $tempExtract = "$env:TEMP\bl-extract-$(Get-Random)"
+    Expand-Archive -Path $tempFile -DestinationPath $tempExtract -Force
+    
+    # Find and copy only bl.exe
+    $exePath = Get-ChildItem -Path $tempExtract -Filter "bl.exe" -Recurse | Select-Object -First 1
+    if ($exePath) {
+        Copy-Item $exePath.FullName -Destination "$INSTALL_DIR\$BINARY_NAME" -Force
+    } else {
+        Write-Host "      [ERROR] bl.exe not found in archive" -ForegroundColor Red
+        exit 1
+    }
+    
+    Remove-Item $tempExtract -Recurse -Force
 } else {
     Copy-Item $tempFile -Destination "$INSTALL_DIR\$BINARY_NAME" -Force
 }

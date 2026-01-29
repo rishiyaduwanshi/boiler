@@ -38,9 +38,7 @@ archives:
       - goos: windows
         format: zip
     files:
-      - README.md
-      - LICENSE
-      - scripts/*
+      - none*
 
 checksum:
   name_template: 'checksums.txt'
