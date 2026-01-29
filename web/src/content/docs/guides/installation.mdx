@@ -1,0 +1,130 @@
+---
+title: Installation
+description: How to install Boiler on your system
+---
+
+import { Tabs, TabItem, Code } from '@astrojs/starlight/components';
+
+Get Boiler up and running on your system in minutes.
+
+## Quick Install
+
+The fastest way to install Boiler is using our installation script:
+
+<Tabs>
+<TabItem label="Windows (PowerShell)">
+
+```bash
+# Run the installation script
+iwr -useb https://boiler.iamabhinav.dev/install | iex
+```
+
+</TabItem>
+<TabItem label="Linux/macOS">
+
+```bash
+# Run the installation script
+curl -fsSL https://boiler.iamabhinav.dev/install | sh
+```
+
+</TabItem>
+</Tabs>
+
+## Package Managers
+
+:::note[Coming Soon]
+Support for popular package managers is coming soon:
+- **Windows**: `winget install boiler`
+- **macOS**: `brew install boiler`
+- **Linux**: `apt install boiler`
+- **npm**: `npm install -g boiler`
+:::
+
+## Manual Installation
+
+### Prerequisites
+
+- Go 1.21 or higher (for building from source)
+- Git (for cloning the repository)
+
+### Build from Source
+
+<Tabs>
+<TabItem label="Windows">
+
+```powershell
+# Clone the repository
+git clone https://github.com/rishiyaduwanshi/boiler.git
+cd boiler
+
+# Build the binary
+go build -o boiler.exe main.go
+
+# Run the install script
+.\scripts\install.ps1
+```
+
+</TabItem>
+<TabItem label="Linux/macOS">
+
+```bash
+# Clone the repository
+git clone https://github.com/rishiyaduwanshi/boiler.git
+cd boiler
+
+# Build the binary
+go build -o boiler main.go
+
+# Run the install script
+chmod +x scripts/install.sh
+./scripts/install.sh
+```
+
+</TabItem>
+</Tabs>
+
+### Download Binary
+
+1. Download the latest release binary from the [GitHub Releases](https://github.com/rishiyaduwanshi/boiler/releases) page
+2. Extract the archive
+3. Move the binary to a directory in your PATH
+
+<Tabs>
+<TabItem label="Windows">
+
+```powershell
+# Move to a directory in PATH (example)
+Move-Item boiler.exe C:\Windows\System32\
+```
+
+</TabItem>
+<TabItem label="Linux/macOS">
+
+```bash
+# Move to /usr/local/bin
+sudo mv boiler /usr/local/bin/
+chmod +x /usr/local/bin/boiler
+```
+
+</TabItem>
+</Tabs>
+
+## Verify Installation
+
+Check that Boiler is installed correctly:
+
+```bash
+bl version
+```
+
+You should see the version information displayed.
+
+## Initialize Boiler
+
+After installation, initialize Boiler to set up your local store:
+
+```bash
+bl init
+```
+
+This creates the necessary directories and configuration files.

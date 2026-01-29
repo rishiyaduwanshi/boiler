@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="90" fill="#0a0a0a" stroke="#22c55e" stroke-width="4"/>
+  
+  <!-- Stylized "B" made of stacked code blocks - centered and aligned -->
+  
+  <!-- Top stack (shortest) -->
+  <rect x="70" y="55" width="55" height="22" rx="4" fill="#22c55e" opacity="0.95"/>
+  <line x1="80" y1="66" x2="95" y2="66" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="100" y1="66" x2="115" y2="66" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round"/>
+  
+  <!-- Middle stack (medium) -->
+  <rect x="65" y="87" width="65" height="22" rx="4" fill="#22c55e" opacity="0.75"/>
+  <line x1="75" y1="98" x2="92" y2="98" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="98" y1="98" x2="115" y2="98" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round"/>
+  
+  <!-- Bottom stack (longest) -->
+  <rect x="60" y="119" width="75" height="22" rx="4" fill="#22c55e" opacity="0.55"/>
+  <line x1="70" y1="130" x2="88" y2="130" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="95" y1="130" x2="113" y2="130" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="120" y1="130" x2="125" y2="130" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round"/>
+  
+  <!-- Code brackets overlay (subtle) -->
+  <g opacity="0.25">
+    <path d="M 42 85 L 38 85 L 32 100 L 38 115 L 42 115" 
+          stroke="#22c55e" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <path d="M 158 85 L 162 85 L 168 100 L 162 115 L 158 115" 
+          stroke="#22c55e" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+</svg>

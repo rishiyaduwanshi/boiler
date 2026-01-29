@@ -1,0 +1,48 @@
+---
+title: Welcome to Boiler
+description: CLI tool for managing code snippets and project stacks
+template: splash
+hero:
+  tagline: Store, version, and reuse your code snippets & project stacks effortlessly
+  actions:
+    - text: Get Started
+      link: /guides/installation/
+      icon: right-arrow
+    - text: View on GitHub
+      link: https://github.com/rishiyaduwanshi/boiler
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## Features
+
+<CardGrid stagger>
+	<Card title="Auto-Versioning" icon="puzzle">
+		Never worry about overwriting. Automatic version management for all your resources.
+	</Card>
+	<Card title="Lightning Fast" icon="rocket">
+		Built with Go for maximum performance. Store and retrieve in milliseconds.
+	</Card>
+	<Card title="Smart Detection" icon="approve-check">
+		Automatically detects file types and folder structures. No manual configuration needed.
+	</Card>
+	<Card title="Language Agnostic" icon="translate">
+		Works with any programming language. One tool for all your projects.
+	</Card>
+</CardGrid>
+
+## Quick Example
+
+```bash
+# Store a snippet
+bl store errorHandler.js
+
+# Use it in any project
+bl add errorHandler@1.js
+```
+
+## Ready to start?
+
+Check out the [Installation Guide](/guides/installation/) to get Boiler running in seconds!

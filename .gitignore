@@ -11,6 +11,8 @@ boiler.conf.json
 # Dependencies
 node_modules/
 vendor/
+.astro
+
 
 # IDE
 .vscode/
