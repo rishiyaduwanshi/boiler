@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -14,6 +15,34 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// parseStackConfig reads and parses boiler.stack.json from a directory
+func parseStackConfig(dirPath string) (*StackConfig, error) {
+	configPath := filepath.Join(dirPath, "boiler.stack.json")
+	if !utils.FileExists(configPath) {
+		return nil, fmt.Errorf("boiler.stack.json not found. Run 'bl init' first to create config")
+	}
+
+	data, err := os.ReadFile(configPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read boiler.stack.json: %w", err)
+	}
+
+	var config StackConfig
+	if err := json.Unmarshal(data, &config); err != nil {
+		return nil, fmt.Errorf("failed to parse boiler.stack.json: %w", err)
+	}
+
+	return &config, nil
+}
+
+// resolveIgnorePatterns returns ignore patterns from config
+func resolveIgnorePatterns(config *StackConfig) []string {
+	// Use patterns from config, always add boiler.stack.json
+	patterns := make([]string, len(config.Ignore))
+	copy(patterns, config.Ignore)
+	return append(patterns, "boiler.stack.json")
+}
+
 var (
 	warningStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("226")).Bold(true)
 )
@@ -24,13 +53,14 @@ var storeCmd = &cobra.Command{
 	Long: `Store a file as a snippet or directory as a stack in your Boiler store.
 
 Files are stored as snippets with version numbers.
-Directories are stored as stacks with version numbers.
+Directories must have a boiler.stack.json config file (run 'bl init' first).
 
-If a resource with the same name exists, you'll be prompted to either:
-  - Create a new version (v)
-  - Overwrite existing (o)
+Stacks require boiler.stack.json with:
+  - id: Stack name
+  - version: Version number
+  - ignore: Patterns to exclude
 
-Ignored patterns: node_modules, .git, .DS_Store, Thumbs.db, vendor, __pycache__, .vscode`,
+If a stack version already exists, you'll be prompted to overwrite.`,
 	Example: `  # Store current directory as stack
   bl store
 
@@ -109,6 +139,32 @@ func storeSnippet(st *store.Store, path string) error {
 		return fmt.Errorf("snippet file must have an extension")
 	}
 
+	// Parse metadata from file comments
+	meta, err := utils.ParseSnippetMetadata(path)
+	if err != nil {
+		return fmt.Errorf("failed to parse snippet metadata: %w", err)
+	}
+
+	// Validate required fields
+	if err := utils.ValidateSnippetMetadata(meta); err != nil {
+		return fmt.Errorf("invalid snippet metadata: %w\n\nAdd required metadata comments:\n  // __author Your Name\n  // __version 1", err)
+	}
+
+	// Use metadata name if no custom name provided
+	if storeName == "" || storeName == strings.TrimSuffix(filepath.Base(path), ext) {
+		if meta.Name != "" {
+			storeName = meta.Name
+		} else {
+			storeName = strings.TrimSuffix(filepath.Base(path), ext)
+		}
+	}
+
+	// Parse version from metadata
+	version, err := strconv.Atoi(meta.Version)
+	if err != nil {
+		return fmt.Errorf("invalid version in snippet metadata: %s (must be a number)", meta.Version)
+	}
+
 	// Determine the language directory based on extension
 	langDir := strings.TrimPrefix(ext, ".")
 	snippetDir := filepath.Join(cfg.Paths.Snippets, langDir)
@@ -116,50 +172,25 @@ func storeSnippet(st *store.Store, path string) error {
 		return fmt.Errorf("failed to create snippet directory: %w", err)
 	}
 
-	// Check if any version exists in metadata
-	existingVersions := findExistingVersions(st, storeName, ext, true)
-	var version int
-	var fullName string
-	var destPath string
+	// Build full name with version
+	fullName := fmt.Sprintf("%s@%d%s", storeName, version, ext)
+	destPath := filepath.Join(snippetDir, filepath.Base(fullName))
 
-	if len(existingVersions) > 0 {
-		// Already exists - show warning and ask user
-		latestVersion := existingVersions[len(existingVersions)-1]
-		fmt.Println(warningStyle.Render(fmt.Sprintf("⚠ Warning: snippet '%s' already exists in store", storeName)))
-		choice, err := utils.Prompt("Do you want to create a new version (v) or overwrite it (o)? ")
-		if err != nil {
-			return fmt.Errorf("failed to read input: %w", err)
-		}
-
-		choice = strings.ToLower(strings.TrimSpace(choice))
-		if choice == "v" {
-			// Create new version
-			version = latestVersion + 1
-			fullName = fmt.Sprintf("%s@%d%s", storeName, version, ext)
-			destPath = filepath.Join(snippetDir, filepath.Base(fullName))
-		} else if choice == "o" {
-			// Overwrite latest version
-			version = latestVersion
-			fullName = fmt.Sprintf("%s@%d%s", storeName, version, ext)
-			destPath = filepath.Join(snippetDir, filepath.Base(fullName))
-			// Remove old entry from metadata
-			if err := st.RemoveSnippet(fullName); err != nil {
-				return fmt.Errorf("failed to remove old snippet: %w", err)
-			}
-			// Remove old file
-			if utils.FileExists(destPath) {
-				if err := os.Remove(destPath); err != nil {
-					return fmt.Errorf("failed to remove old file: %w", err)
-				}
-			}
-		} else {
+	// Check if this version already exists
+	if st.SnippetExists(fullName) {
+		choice, err := utils.Prompt(fmt.Sprintf("Snippet '%s' already exists. Overwrite? (y/n): ", fullName))
+		if err != nil || strings.ToLower(strings.TrimSpace(choice)) != "y" {
 			return fmt.Errorf("cancelled")
 		}
-	} else {
-		// First version
-		version = 1
-		fullName = fmt.Sprintf("%s@%d%s", storeName, version, ext)
-		destPath = filepath.Join(snippetDir, filepath.Base(fullName))
+		// Remove old version
+		if err := st.RemoveSnippet(fullName); err != nil {
+			return fmt.Errorf("failed to remove old snippet: %w", err)
+		}
+		if utils.FileExists(destPath) {
+			if err := os.Remove(destPath); err != nil {
+				return fmt.Errorf("failed to remove old file: %w", err)
+			}
+		}
 	}
 
 	// Copy file
@@ -183,54 +214,54 @@ func storeStack(st *store.Store, path string) error {
 		return fmt.Errorf("stack must be a directory, not a file")
 	}
 
-	// Check if any version exists in metadata
-	existingVersions := findExistingVersions(st, storeName, "", false)
-	var version int
-	var fullName string
-	var stackDir string
-
-	if len(existingVersions) > 0 {
-		// Already exists - show warning and ask user
-		latestVersion := existingVersions[len(existingVersions)-1]
-		fmt.Println(warningStyle.Render(fmt.Sprintf("⚠ Warning: stack '%s' already exists in store", storeName)))
-		choice, err := utils.Prompt("Do you want to create a new version (v) or overwrite it (o)? ")
-		if err != nil {
-			return fmt.Errorf("failed to read input: %w", err)
-		}
-
-		choice = strings.ToLower(strings.TrimSpace(choice))
-		if choice == "v" {
-			// Create new version
-			version = latestVersion + 1
-			fullName = fmt.Sprintf("%s@%d", storeName, version)
-			stackDir = filepath.Join(cfg.Paths.Stacks, fullName)
-		} else if choice == "o" {
-			// Overwrite latest version
-			version = latestVersion
-			fullName = fmt.Sprintf("%s@%d", storeName, version)
-			stackDir = filepath.Join(cfg.Paths.Stacks, fullName)
-			// Remove old entry from metadata
-			if err := st.RemoveStack(fullName); err != nil {
-				return fmt.Errorf("failed to remove old stack: %w", err)
-			}
-			// Remove old directory
-			if utils.IsDirectory(stackDir) {
-				if err := os.RemoveAll(stackDir); err != nil {
-					return fmt.Errorf("failed to remove old directory: %w", err)
-				}
-			}
-		} else {
-			return fmt.Errorf("cancelled")
-		}
-	} else {
-		// First version
-		version = 1
-		fullName = fmt.Sprintf("%s@%d", storeName, version)
-		stackDir = filepath.Join(cfg.Paths.Stacks, fullName)
+	// Parse config (mandatory)
+	stackConfig, err := parseStackConfig(path)
+	if err != nil {
+		return err
 	}
 
+	// Validate required fields
+	if stackConfig.ID == "" {
+		return fmt.Errorf("'id' field is required in boiler.stack.json")
+	}
+	if stackConfig.Version == "" {
+		return fmt.Errorf("'version' field is required in boiler.stack.json")
+	}
+
+	// Use config ID as stack name
+	storeName = stackConfig.ID
+
+	// Parse version
+	version, err := strconv.Atoi(stackConfig.Version)
+	if err != nil {
+		return fmt.Errorf("invalid version in boiler.stack.json: %s", stackConfig.Version)
+	}
+
+	// Build paths
+	fullName := fmt.Sprintf("%s@%d", storeName, version)
+	stackDir := filepath.Join(cfg.Paths.Stacks, fullName)
+
+	// Check if this version already exists
+	if st.StackExists(fullName) {
+		choice, err := utils.Prompt(fmt.Sprintf("Stack '%s' already exists. Overwrite? (y/n): ", fullName))
+		if err != nil || strings.ToLower(strings.TrimSpace(choice)) != "y" {
+			return fmt.Errorf("cancelled")
+		}
+		// Remove old version
+		if err := st.RemoveStack(fullName); err != nil {
+			return fmt.Errorf("failed to remove old stack: %w", err)
+		}
+		if utils.IsDirectory(stackDir) {
+			if err := os.RemoveAll(stackDir); err != nil {
+				return fmt.Errorf("failed to remove old directory: %w", err)
+			}
+		}
+	}
+
+	// Get ignore patterns from config
+	ignorePatterns := resolveIgnorePatterns(stackConfig)
+
 	// Copy directory
-	ignorePatterns := []string{"node_modules", ".git", ".DS_Store", "Thumbs.db", "vendor", "__pycache__", ".vscode"}
 	if err := utils.CopyDir(path, stackDir, ignorePatterns); err != nil {
 		return fmt.Errorf("failed to copy stack: %w", err)
 	}

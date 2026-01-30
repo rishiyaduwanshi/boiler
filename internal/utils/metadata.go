@@ -1,0 +1,148 @@
+package utils
+
+import (
+	"bufio"
+	"fmt"
+	"os"
+	"os/exec"
+	"regexp"
+	"strings"
+	"time"
+)
+
+// CommonMetadata represents shared metadata between stack and snippet
+type CommonMetadata struct {
+	Name        string
+	Version     string
+	Author      string
+	Description string
+	CreatedAt   time.Time
+}
+
+// SnippetMetadata includes snippet-specific fields
+type SnippetMetadata struct {
+	CommonMetadata
+	Language  string
+	Variables map[string]string // bl__VAR_NAME -> default value
+}
+
+// PromptCommonMetadata prompts user for common metadata fields
+func PromptCommonMetadata(defaultName string, skipPrompts bool) (CommonMetadata, error) {
+	var meta CommonMetadata
+	
+	// Get author from git
+	author := getGitAuthor()
+	
+	if skipPrompts {
+		meta = CommonMetadata{
+			Name:        defaultName,
+			Version:     "1",
+			Author:      author,
+			Description: "",
+			CreatedAt:   time.Now(),
+		}
+	} else {
+		// Use defaultName directly, don't prompt
+		meta.Name = defaultName
+		meta.Description = PromptString("Description (optional)", "")
+		meta.Author = PromptString("Author", author)
+		meta.Version = PromptString("Version", "1")
+		meta.CreatedAt = time.Now()
+	}
+	
+	return meta, nil
+}
+
+// getGitAuthor fetches git user name
+func getGitAuthor() string {
+	cmd := exec.Command("git", "config", "user.name")
+	output, err := cmd.Output()
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(string(output))
+}
+
+// ParseSnippetMetadata reads a snippet file and extracts metadata from comments
+func ParseSnippetMetadata(filePath string) (*SnippetMetadata, error) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open file: %w", err)
+	}
+	defer file.Close()
+
+	meta := &SnippetMetadata{
+		Variables: make(map[string]string),
+	}
+
+	scanner := bufio.NewScanner(file)
+	
+	// Regex patterns for metadata
+	authorRe := regexp.MustCompile(`__author\s+(.+)`)
+	descRe := regexp.MustCompile(`__desc\s+(.+)`)
+	versionRe := regexp.MustCompile(`__version\s+(.+)`)
+	varRe := regexp.MustCompile(`__var\s+(\w+)\s*=\s*(.+)`)
+
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		
+		// Skip empty lines
+		if len(line) == 0 {
+			continue
+		}
+
+		// Extract metadata (regex handles any comment style)
+		if matches := authorRe.FindStringSubmatch(line); len(matches) > 1 {
+			meta.Author = strings.TrimSpace(matches[1])
+		}
+		if matches := descRe.FindStringSubmatch(line); len(matches) > 1 {
+			meta.Description = strings.TrimSpace(matches[1])
+		}
+		if matches := versionRe.FindStringSubmatch(line); len(matches) > 1 {
+			meta.Version = strings.TrimSpace(matches[1])
+		}
+		if matches := varRe.FindStringSubmatch(line); len(matches) > 2 {
+			varName := strings.TrimSpace(matches[1])
+			varValue := strings.TrimSpace(matches[2])
+			meta.Variables[varName] = varValue
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return nil, fmt.Errorf("error reading file: %w", err)
+	}
+
+	return meta, nil
+}
+
+// ValidateSnippetMetadata checks if required fields are present
+func ValidateSnippetMetadata(meta *SnippetMetadata) error {
+	if meta.Author == "" {
+		return fmt.Errorf("missing required field: __author")
+	}
+	if meta.Version == "" {
+		return fmt.Errorf("missing required field: __version")
+	}
+	// Name and Description are optional - can be derived from filename
+	return nil
+}
+
+
+
+// GenerateSnippetTemplate creates a snippet file with metadata comments
+func GenerateSnippetTemplate(filePath string, meta CommonMetadata, commentPrefix string) error {
+	content := fmt.Sprintf(`%s__author %s
+%s__desc %s
+%s__version %s
+%s__var bl__EXAMPLE_VAR = DefaultValue
+
+// Your code here
+`, commentPrefix, meta.Author, commentPrefix, meta.Description, 
+   commentPrefix, meta.Version, commentPrefix)
+
+	if err := os.WriteFile(filePath, []byte(content), 0644); err != nil {
+		return fmt.Errorf("failed to write file: %w", err)
+	}
+
+	return nil
+}

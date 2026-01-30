@@ -118,6 +118,16 @@ func (s *Store) RemoveStack(name string) error {
 	return s.Save()
 }
 
+func (s *Store) SnippetExists(name string) bool {
+	_, ok := s.meta.Snippets[name]
+	return ok
+}
+
+func (s *Store) StackExists(name string) bool {
+	_, ok := s.meta.Stacks[name]
+	return ok
+}
+
 func (s *Store) ListSnippets() []string {
 	snippets := make([]string, 0, len(s.meta.Snippets))
 	for name := range s.meta.Snippets {

@@ -49,6 +49,7 @@ func DefaultConfig() *Config {
 		},
 		Artifacts: map[string]string{
 			"default":    "//  ",
+			"bl":         "//  ",
 			"py":         "#  ",
 			"rb":         "#  ",
 			"sh":         "#  ",

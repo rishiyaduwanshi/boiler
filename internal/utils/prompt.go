@@ -29,6 +29,15 @@ func PromptWithDefault(message, defaultValue string) (string, error) {
 	return input, nil
 }
 
+// PromptString is a convenience wrapper for PromptWithDefault
+func PromptString(message, defaultValue string) string {
+	result, err := PromptWithDefault(message, defaultValue)
+	if err != nil {
+		return defaultValue
+	}
+	return result
+}
+
 func PromptYesNo(message string) (bool, error) {
 	input, err := Prompt(message + " (y/n): ")
 	if err != nil {
