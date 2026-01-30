@@ -12,6 +12,13 @@ Store a file as a snippet or directory as a stack in your Boiler store.
 Files are stored as snippets with version numbers.
 Directories must have a boiler.stack.json config file (run 'bl init' first).
 
+Version Management:
+  If snippet already exists, you'll be prompted with options:
+    (o) Overwrite - Replace the latest version with new content
+    (n) New version - Create a new incremental version
+    (c) Cancel - Abort the operation
+  First-time storage automatically creates version 1
+
 Stacks require boiler.stack.json with:
   - id: Stack name
   - version: Version number
@@ -29,8 +36,16 @@ bl store [path] [flags]
   # Store current directory as stack
   bl store
 
-  # Store specific file as snippet
+  # Store specific file as snippet (first version)
   bl store ./utils/logger.js
+  # Output: ✓ Stored snippet 'logger@1.js'
+
+  # Store again - prompts for action
+  bl store ./utils/logger.js
+  # Prompt: Snippet 'logger' already exists (1 version(s)). Options:
+  #   (o) Overwrite latest version (1)
+  #   (n) Create new version (2)
+  #   (c) Cancel
 
   # Store directory as stack
   bl store ./my-template
