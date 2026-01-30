@@ -99,18 +99,95 @@ if ($asset.name -like "*.zip") {
     $tempExtract = "$env:TEMP\bl-extract-$(Get-Random)"
     Expand-Archive -Path $tempFile -DestinationPath $tempExtract -Force
     
-    # Find and copy only bl.exe
+    # Find bl.exe in extracted files
     $exePath = Get-ChildItem -Path $tempExtract -Filter "bl.exe" -Recurse | Select-Object -First 1
-    if ($exePath) {
-        Copy-Item $exePath.FullName -Destination "$INSTALL_DIR\$BINARY_NAME" -Force
-    } else {
+    if (!$exePath) {
         Write-Host "      [ERROR] bl.exe not found in archive" -ForegroundColor Red
         exit 1
     }
     
+    $targetPath = "$INSTALL_DIR\$BINARY_NAME"
+    
+    # Check if bl.exe is currently running (Windows file lock issue)
+    if (Test-Path $targetPath) {
+        try {
+            # Try to rename current exe (if it's locked, this will fail)
+            $oldPath = "$targetPath.old"
+            Move-Item $targetPath $oldPath -Force -ErrorAction Stop
+            
+            # Copy new binary
+            Copy-Item $exePath.FullName -Destination $targetPath -Force
+            
+            # Delete old binary
+            Remove-Item $oldPath -Force -ErrorAction SilentlyContinue
+        } catch {
+            # If rename fails, binary is running - use delayed replacement
+            Write-Host "      Binary is currently running, scheduling delayed update..." -ForegroundColor Yellow
+            
+            $updateScript = @"
+Start-Sleep -Seconds 2
+Remove-Item "$targetPath" -Force -ErrorAction SilentlyContinue
+Copy-Item "$($exePath.FullName)" -Destination "$targetPath" -Force
+Remove-Item "$tempExtract" -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item "`$PSCommandPath" -Force
+"@
+            $updateScriptPath = "$env:TEMP\bl-update-$(Get-Random).ps1"
+            $updateScript | Out-File -FilePath $updateScriptPath -Encoding UTF8 -Force
+            
+            # Start update script in background
+            Start-Process powershell -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-WindowStyle", "Hidden", "-File", $updateScriptPath -NoNewWindow
+            
+            Write-Host "      Update will complete after current process exits" -ForegroundColor Green
+            # Don't remove tempExtract here - update script will handle it
+            Remove-Item $tempFile -Force
+            Write-Host ""
+            Write-Host "================================================" -ForegroundColor Cyan
+            Write-Host "Update scheduled successfully!" -ForegroundColor Green
+            Write-Host "The update will complete in a few seconds." -ForegroundColor Gray
+            Write-Host "================================================" -ForegroundColor Cyan
+            exit 0
+        }
+    } else {
+        # Fresh install
+        Copy-Item $exePath.FullName -Destination $targetPath -Force
+    }
+    
     Remove-Item $tempExtract -Recurse -Force
 } else {
-    Copy-Item $tempFile -Destination "$INSTALL_DIR\$BINARY_NAME" -Force
+    $targetPath = "$INSTALL_DIR\$BINARY_NAME"
+    if (Test-Path $targetPath) {
+        # Same delayed replacement logic for non-zip downloads
+        try {
+            $oldPath = "$targetPath.old"
+            Move-Item $targetPath $oldPath -Force -ErrorAction Stop
+            Copy-Item $tempFile -Destination $targetPath -Force
+            Remove-Item $oldPath -Force -ErrorAction SilentlyContinue
+        } catch {
+            Write-Host "      Binary is currently running, scheduling delayed update..." -ForegroundColor Yellow
+            
+            $updateScript = @"
+Start-Sleep -Seconds 2
+Remove-Item "$targetPath" -Force -ErrorAction SilentlyContinue
+Copy-Item "$tempFile" -Destination "$targetPath" -Force
+Remove-Item "$tempFile" -Force -ErrorAction SilentlyContinue
+Remove-Item "`$PSCommandPath" -Force
+"@
+            $updateScriptPath = "$env:TEMP\bl-update-$(Get-Random).ps1"
+            $updateScript | Out-File -FilePath $updateScriptPath -Encoding UTF8 -Force
+            
+            Start-Process powershell -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-WindowStyle", "Hidden", "-File", $updateScriptPath -NoNewWindow
+            
+            Write-Host "      Update will complete after current process exits" -ForegroundColor Green
+            Write-Host ""
+            Write-Host "================================================" -ForegroundColor Cyan
+            Write-Host "Update scheduled successfully!" -ForegroundColor Green
+            Write-Host "The update will complete in a few seconds." -ForegroundColor Gray
+            Write-Host "================================================" -ForegroundColor Cyan
+            exit 0
+        }
+    } else {
+        Copy-Item $tempFile -Destination $targetPath -Force
+    }
 }
 Remove-Item $tempFile -Force
 Write-Host "      Binary installed" -ForegroundColor Gray
