@@ -81,7 +81,8 @@ func ParseSnippetMetadata(filePath string) (*SnippetMetadata, error) {
 	authorRe := regexp.MustCompile(`__author\s+(.+)`)
 	descRe := regexp.MustCompile(`__desc\s+(.+)`)
 	versionRe := regexp.MustCompile(`__version\s+(.+)`)
-	varRe := regexp.MustCompile(`__var\s+(\w+)\s*=\s*(.+)`)
+	// Match variable names with underscores (e.g., bl__API_URL)
+	varRe := regexp.MustCompile(`__var\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*(.+)`)
 
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())

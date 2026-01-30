@@ -1,10 +1,13 @@
 package utils
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strings"
 )
 
 func CopyFile(src, dst string) error {
@@ -109,4 +112,68 @@ func GetFileExtension(filename string) string {
 func GetFileNameWithoutExt(filename string) string {
 	ext := filepath.Ext(filename)
 	return filename[:len(filename)-len(ext)]
+}
+
+// CopyFileWithVariables copies a file and replaces template variables
+// Variables format: bl__VAR_NAME will be replaced with provided values
+// Also removes all metadata comments (__author, __desc, __var lines)
+func CopyFileWithVariables(src, dst string, varReplacements map[string]string) error {
+	sourceFile, err := os.Open(src)
+	if err != nil {
+		return fmt.Errorf("failed to open source file: %w", err)
+	}
+	defer sourceFile.Close()
+
+	if err := os.MkdirAll(filepath.Dir(dst), 0755); err != nil {
+		return fmt.Errorf("failed to create destination directory: %w", err)
+	}
+
+	destFile, err := os.Create(dst)
+	if err != nil {
+		return fmt.Errorf("failed to create destination file: %w", err)
+	}
+	defer destFile.Close()
+
+	// Regex to match metadata lines
+	metadataRe := regexp.MustCompile(`^\s*[/#;-]*\s*__(?:author|desc|version|var)\s+.+`)
+
+	scanner := bufio.NewScanner(sourceFile)
+	writer := bufio.NewWriter(destFile)
+
+	for scanner.Scan() {
+		line := scanner.Text()
+
+		// Skip metadata comment lines
+		if metadataRe.MatchString(line) {
+			continue
+		}
+
+		// Replace variables (bl__VAR_NAME -> actual value)
+		for varName, varValue := range varReplacements {
+			line = strings.ReplaceAll(line, varName, varValue)
+		}
+
+		if _, err := writer.WriteString(line + "\n"); err != nil {
+			return fmt.Errorf("failed to write line: %w", err)
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return fmt.Errorf("failed to read file: %w", err)
+	}
+
+	if err := writer.Flush(); err != nil {
+		return fmt.Errorf("failed to flush writer: %w", err)
+	}
+
+	// Copy file permissions
+	sourceInfo, err := os.Stat(src)
+	if err != nil {
+		return fmt.Errorf("failed to stat source file: %w", err)
+	}
+	if err := os.Chmod(dst, sourceInfo.Mode()); err != nil {
+		return fmt.Errorf("failed to set file permissions: %w", err)
+	}
+
+	return nil
 }

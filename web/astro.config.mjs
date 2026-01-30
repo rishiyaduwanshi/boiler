@@ -33,6 +33,12 @@ export default defineConfig({
 					],
 				},
 				{
+					label: 'Guides',
+					items: [
+						{ label: 'Boiler Syntax', slug: 'guides/syntax' },
+					],
+				},
+				{
 					label: 'Commands',
 					autogenerate: { directory: 'commands' },
 				},

@@ -19,9 +19,22 @@ The command copies resources from your store. For snippets with a single version
 you can use just the name (e.g., 'errorHandler' will auto-select version 1).
 For multiple versions, you'll be prompted to choose.
 
+Template Variables:
+  Snippets can contain template variables using the format: bl__VAR_NAME
+  When adding a snippet with variables, you'll be prompted to provide values:
+    - Default values are shown in brackets (from __var declarations)
+    - Press Enter to use default or type a custom value
+    - Variables are replaced and metadata comments are removed in the final file
+
 Stacks are also versioned and can be added by name or with explicit version.`,
 	Example: `  # Add snippet (auto-detects if single version)
   bl add errorHandler
+
+  # Add snippet with template variables
+  bl add apiClient
+  # Prompts: bl__API_URL [http://localhost:3000]: https://api.example.com
+  #          bl__API_KEY [your-key]: abc123xyz
+  # Output: Clean file with variables replaced, no metadata comments
 
   # Add specific version
   bl add logger@2.js
@@ -52,26 +65,63 @@ func addResource(resource string) error {
 		return err
 	}
 
-	fullName := utils.ParseResourceName(resource)
 	destPath := addTo
 	if destPath == "" {
 		destPath = "."
 	}
 
-	// If resource has extension, it's a snippet
-	if store.IsSnippet(resource) {
-		return addSnippet(st, fullName, destPath)
+	// Parse resource name to extract parts
+	baseName, version, ext := store.ParseResourceName(resource)
+
+	// If it's a snippet (has extension)
+	if ext != "" {
+		// If version is explicitly provided, use it directly
+		if version != "" {
+			fullName := baseName + "@" + version + ext
+			return addSnippet(st, fullName, destPath)
+		}
+
+		// No version specified - find matching snippets by name and extension
+		matchingSnippets := findMatchingSnippetsByNameAndExt(st, baseName, ext)
+		
+		if len(matchingSnippets) == 0 {
+			return fmt.Errorf(utils.ErrResourceNotFound, "snippet", resource)
+		}
+
+		// If only one version exists, use it automatically
+		if len(matchingSnippets) == 1 {
+			return addSnippet(st, matchingSnippets[0], destPath)
+		}
+
+		// Multiple versions - prompt user to choose
+		fmt.Printf("Multiple versions found for '%s%s':\n", baseName, ext)
+		for i, name := range matchingSnippets {
+			fmt.Printf("  %d. %s\n", i+1, name)
+		}
+
+		choice, err := utils.Prompt(fmt.Sprintf("Enter version number (1-%d): ", len(matchingSnippets)))
+		if err != nil {
+			return fmt.Errorf("failed to read input: %w", err)
+		}
+
+		var selectedIdx int
+		fmt.Sscanf(choice, "%d", &selectedIdx)
+		if selectedIdx < 1 || selectedIdx > len(matchingSnippets) {
+			return fmt.Errorf("invalid choice")
+		}
+
+		return addSnippet(st, matchingSnippets[selectedIdx-1], destPath)
 	}
 
-	// No extension - could be stack or snippet name without version
+	// No extension - could be stack or snippet name without version/extension
 	// First check if it exists as a stack
 	_, stackExists := st.GetStack(resource)
 	if stackExists {
 		return addStack(st, resource, destPath)
 	}
 
-	// Not a stack, try to find matching snippets
-	matchingSnippets := findMatchingSnippets(st, resource)
+	// Not a stack, try to find matching snippets by base name only
+	matchingSnippets := findMatchingSnippets(st, baseName)
 	if len(matchingSnippets) == 0 {
 		return fmt.Errorf(utils.ErrResourceNotFound, "stack or snippet", resource)
 	}
@@ -82,7 +132,7 @@ func addResource(resource string) error {
 	}
 
 	// Multiple versions - prompt user to choose
-	fmt.Printf("Multiple versions found for '%s':\n", resource)
+	fmt.Printf("Multiple versions found for '%s':\n", baseName)
 	for i, name := range matchingSnippets {
 		fmt.Printf("  %d. %s\n", i+1, name)
 	}
@@ -117,6 +167,21 @@ func findMatchingSnippets(st *store.Store, name string) []string {
 	return matches
 }
 
+// findMatchingSnippetsByNameAndExt finds all snippets matching both name and extension
+func findMatchingSnippetsByNameAndExt(st *store.Store, name, ext string) []string {
+	allSnippets := st.ListSnippets()
+	var matches []string
+
+	for _, snippet := range allSnippets {
+		snippetName, _, snippetExt := store.ParseResourceName(snippet)
+		if snippetName == name && snippetExt == ext {
+			matches = append(matches, snippet)
+		}
+	}
+
+	return matches
+}
+
 func addSnippet(st *store.Store, name, destPath string) error {
 	snippetPath, ok := st.GetSnippet(name)
 	if !ok {
@@ -125,6 +190,26 @@ func addSnippet(st *store.Store, name, destPath string) error {
 
 	if !utils.FileExists(snippetPath) {
 		return fmt.Errorf(utils.ErrResourceNotFound, "snippet file", snippetPath)
+	}
+
+	// Parse snippet metadata to check for variables
+	meta, err := utils.ParseSnippetMetadata(snippetPath)
+	if err != nil {
+		return fmt.Errorf("failed to parse snippet metadata: %w", err)
+	}
+
+	// Prompt user for variable values if variables exist
+	varReplacements := make(map[string]string)
+	if len(meta.Variables) > 0 {
+		fmt.Println("Template variables found:")
+		for varName, defaultValue := range meta.Variables {
+			prompt := fmt.Sprintf("  %s", varName)
+			value, err := utils.PromptWithDefault(prompt, defaultValue)
+			if err != nil {
+				return fmt.Errorf("failed to read variable input: %w", err)
+			}
+			varReplacements[varName] = value
+		}
 	}
 
 	// Extract base name without version: errorHandler@1.js -> errorHandler.js
@@ -136,7 +221,8 @@ func addSnippet(st *store.Store, name, destPath string) error {
 		return fmt.Errorf(utils.ErrFileAlreadyExists, destFile)
 	}
 
-	if err := utils.CopyFile(snippetPath, destFile); err != nil {
+	// Copy file with variable replacement
+	if err := utils.CopyFileWithVariables(snippetPath, destFile, varReplacements); err != nil {
 		return fmt.Errorf("failed to copy snippet: %w", err)
 	}
 
