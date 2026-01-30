@@ -1,47 +1,18 @@
 package cli
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
+	"github.com/rishiyaduwanshi/boiler/internal/models"
 	"github.com/rishiyaduwanshi/boiler/internal/store"
 	"github.com/rishiyaduwanshi/boiler/internal/utils"
 	"github.com/spf13/cobra"
 )
-
-// parseStackConfig reads and parses boiler.stack.json from a directory
-func parseStackConfig(dirPath string) (*StackConfig, error) {
-	configPath := filepath.Join(dirPath, "boiler.stack.json")
-	if !utils.FileExists(configPath) {
-		return nil, fmt.Errorf("boiler.stack.json not found. Run 'bl init' first to create config")
-	}
-
-	data, err := os.ReadFile(configPath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read boiler.stack.json: %w", err)
-	}
-
-	var config StackConfig
-	if err := json.Unmarshal(data, &config); err != nil {
-		return nil, fmt.Errorf("failed to parse boiler.stack.json: %w", err)
-	}
-
-	return &config, nil
-}
-
-// resolveIgnorePatterns returns ignore patterns from config
-func resolveIgnorePatterns(config *StackConfig) []string {
-	// Use patterns from config, always add boiler.stack.json
-	patterns := make([]string, len(config.Ignore))
-	copy(patterns, config.Ignore)
-	return append(patterns, "boiler.stack.json")
-}
 
 var (
 	warningStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("226")).Bold(true)
@@ -215,7 +186,7 @@ func storeStack(st *store.Store, path string) error {
 	}
 
 	// Parse config (mandatory)
-	stackConfig, err := parseStackConfig(path)
+	stackConfig, err := models.ParseStackConfig(path)
 	if err != nil {
 		return err
 	}
@@ -259,7 +230,7 @@ func storeStack(st *store.Store, path string) error {
 	}
 
 	// Get ignore patterns from config
-	ignorePatterns := resolveIgnorePatterns(stackConfig)
+	ignorePatterns := models.ResolveIgnorePatterns(stackConfig)
 
 	// Copy directory
 	if err := utils.CopyDir(path, stackDir, ignorePatterns); err != nil {
@@ -274,36 +245,6 @@ func storeStack(st *store.Store, path string) error {
 	fmt.Printf("✓ Stored stack '%s' at %s\n", fullName, stackDir)
 	logger.Info(fmt.Sprintf("Stack stored: %s -> %s", path, stackDir))
 	return nil
-}
-
-// findExistingVersions returns all version numbers for a given base name
-func findExistingVersions(st *store.Store, baseName string, ext string, isSnippet bool) []int {
-	versions := []int{}
-	pattern := regexp.MustCompile(fmt.Sprintf(`^%s@(\d+)`, regexp.QuoteMeta(baseName)))
-
-	var items []string
-	if isSnippet {
-		items = st.ListSnippets()
-	} else {
-		items = st.ListStacks()
-	}
-
-	for _, item := range items {
-		// Remove extension if snippet
-		itemName := item
-		if isSnippet && ext != "" {
-			itemName = strings.TrimSuffix(item, ext)
-		}
-
-		matches := pattern.FindStringSubmatch(itemName)
-		if len(matches) > 1 {
-			if ver, err := strconv.Atoi(matches[1]); err == nil {
-				versions = append(versions, ver)
-			}
-		}
-	}
-
-	return versions
 }
 
 var (
