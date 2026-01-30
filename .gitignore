@@ -1,6 +1,7 @@
 # Build artifacts
 bl.exe
 bl
+boiler
 *.exe
 build/
 

@@ -6,8 +6,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
+	"github.com/rishiyaduwanshi/boiler/internal/models"
 	"github.com/rishiyaduwanshi/boiler/internal/utils"
 	"github.com/spf13/cobra"
 )
@@ -51,18 +51,6 @@ Similar to 'npm init', this helps you prepare projects for storing.`,
 		}
 	},
 }
-
-type StackConfig struct {
-	ID          string    `json:"id"`
-	Version     string    `json:"version"`
-	Author      string    `json:"author"`
-	Description string    `json:"description"`
-	CreatedAt   time.Time `json:"createdAt"`
-	Ignore      []string  `json:"ignore"`
-}
-
-
-
 
 
 func initBoilerConfig() error {
@@ -111,7 +99,7 @@ func createStackConfig(path string) error {
 		return err
 	}
 	
-	config := StackConfig{
+	config := models.StackConfig{
 		ID:          commonMeta.Name,
 		Version:     commonMeta.Version,
 		Author:      commonMeta.Author,
