@@ -3,19 +3,27 @@ title: bl init
 description: Command reference for bl init
 ---
 
-Initialize boiler in current directory
+Initialize stack config in current directory
 
 ### Synopsis
 
-Initialize Boiler by creating necessary directories and configuration files.
+Initialize a boiler configuration file in the current directory.
 
-This sets up:
-  - Store directory for snippets and stacks
-  - Configuration file
-  - Metadata tracking
-  - Log directory
+For stacks (directories): Creates boiler.stack.json
+For snippets (files): Creates boiler.snippet.json with metadata
 
-Run this once before using other Boiler commands.
+Stack config includes:
+  - Stack name and description
+  - Author information
+  - Files/folders to ignore
+  - Version metadata
+
+Snippet config includes:
+  - Name, description, author
+  - Language and tags
+  - Version for templating
+
+Similar to 'npm init', this helps you prepare projects for storing.
 
 ```
 bl init [flags]
@@ -24,17 +32,25 @@ bl init [flags]
 ### Examples
 
 ```
-  # Initialize Boiler
+  # Interactive init (prompts for details)
   bl init
 
-  # After init, you can start storing resources
-  bl store ./utils/logger.js
+  # Quick init with defaults (stack)
+  bl init -y
+
+  # Initialize snippet
+  bl init --snippet
+  bl init -n -y
+
+  # After init, customize and store
+  bl store
 ```
 
 ### Options
 
 ```
-  -g, --global   Initialize global configuration
-  -h, --help     help for init
+  -h, --help      help for init
+  -n, --snippet   Initialize as snippet
+  -y, --yes       Skip prompts and use defaults
 ```
 

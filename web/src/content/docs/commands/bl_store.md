@@ -10,13 +10,14 @@ Store a folder/file as snippet or stack
 Store a file as a snippet or directory as a stack in your Boiler store.
 
 Files are stored as snippets with version numbers.
-Directories are stored as stacks with version numbers.
+Directories must have a boiler.stack.json config file (run 'bl init' first).
 
-If a resource with the same name exists, you'll be prompted to either:
-  - Create a new version (v)
-  - Overwrite existing (o)
+Stacks require boiler.stack.json with:
+  - id: Stack name
+  - version: Version number
+  - ignore: Patterns to exclude
 
-Ignored patterns: node_modules, .git, .DS_Store, Thumbs.db, vendor, __pycache__, .vscode
+If a stack version already exists, you'll be prompted to overwrite.
 
 ```
 bl store [path] [flags]
