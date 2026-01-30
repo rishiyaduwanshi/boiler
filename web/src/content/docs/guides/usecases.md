@@ -7,7 +7,59 @@ Boiler is designed to eliminate repetitive coding tasks by storing and reusing c
 
 ---
 
-## 1. Store & Reuse API Middleware
+## 1. Avoid Installing Entire Packages for Small Utilities
+
+**Have you ever thought:** Sometimes we add a package even for a small use case?
+
+**The Problem:**
+```bash
+# Just need one function from lodash?
+npm install lodash  # 1.4MB for one function!
+
+# Need a date formatter?
+npm install moment  # 289KB for basic formatting!
+```
+
+**Boiler Solution:**
+```javascript
+// debounce.js
+// __author Your Name
+// __desc Debounce utility without lodash
+
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+
+module.exports = debounce;
+```
+
+```bash
+# Store once
+bl store debounce.js
+
+# Reuse everywhere - no package needed!
+bl add debounce
+```
+
+**Benefits:**
+- **Zero dependencies** - No node_modules bloat
+- **Lightweight** - Only the code you need
+- **Custom tailored** - Modify to your exact needs
+- **Bundle size** - Smaller production builds
+
+**Perfect for:** Small utilities like debounce, throttle, formatters, validators, parsers, etc.
+
+---
+
+## 2. Store & Reuse API Middleware
 
 **Scenario:** You use the same authentication middleware in every Express project.
 
@@ -25,7 +77,7 @@ bl add auth
 
 ---
 
-## 2. Database Connection Configs
+## 3. Database Connection Configs
 
 **Scenario:** MongoDB/PostgreSQL connection setup is identical across microservices.
 
@@ -42,7 +94,7 @@ bl add db
 
 ---
 
-## 3. Error Handlers & Logging Utilities
+## 4. Error Handlers & Logging Utilities
 
 **Scenario:** You have a custom error handler and logger you always use.
 
@@ -60,7 +112,7 @@ bl add appLogger
 
 ---
 
-## 4. Project Boilerplates (Stacks)
+## 5. Project Boilerplates (Stacks)
 
 **Scenario:** You repeatedly scaffold Express APIs with the same structure.
 
@@ -87,7 +139,7 @@ npm install
 
 ---
 
-## 5. Team Snippet Library
+## 6. Team Snippet Library
 
 **Scenario:** Your team needs standardized code patterns.
 
@@ -107,7 +159,7 @@ bl add rateLimiter
 
 ---
 
-## 6. Versioned Code Evolution
+## 7. Versioned Code Evolution
 
 **Scenario:** You improve a utility and want to keep both versions.
 
@@ -130,7 +182,7 @@ bl add emailService@2  # New projects
 
 ---
 
-## 7. Cross-Language Snippets
+## 8. Cross-Language Snippets
 
 **Scenario:** You work in multiple languages and want to store patterns for all.
 
@@ -155,7 +207,7 @@ bl store errorWrapper.go
 
 ---
 
-## 8. Configuration Files
+## 9. Configuration Files
 
 **Scenario:** You use the same ESLint, Prettier, or Docker configs everywhere.
 
@@ -175,7 +227,7 @@ bl add Dockerfile
 
 ---
 
-## 9. Testing Utilities
+## 10. Testing Utilities
 
 **Scenario:** You have custom test helpers and fixtures.
 
@@ -193,7 +245,7 @@ bl add testSetup
 
 ---
 
-## 10. Quick Script Deployment
+## 11. Quick Script Deployment
 
 **Scenario:** You have shell scripts for deployment, backups, or automation.
 
@@ -279,6 +331,8 @@ cd order-service && bl add auth && bl add cors
 cd payment-service && bl add auth && bl add cors
 ```
 
+---
+
 ### Personal Code Library
 ```bash
 # Store everything you frequently use
@@ -323,6 +377,6 @@ bl add <snippet-name>
 
 ## Next Steps
 
-- [Quick Start Guide](./quickstart) - Get started in 5 minutes
-- [Commands Reference](../commands/bl) - Complete command documentation
-- [Installation](./installation) - Setup instructions
+- [Quick Start Guide](/guides/quickstart/) - Get started in 5 minutes
+- [Commands Reference](/commands/bl/) - Complete command documentation
+- [Installation](/guides/installation/) - Setup instructions

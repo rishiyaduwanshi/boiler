@@ -18,7 +18,9 @@ export default defineConfig({
 			},
 			favicon: '/favicon.svg',
 			customCss: ['./src/styles/custom.css'],
-			social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/rishiyaduwanshi/boiler' }],
+			social: [
+				{ icon: 'github', label: 'GitHub', href: 'https://github.com/rishiyaduwanshi/boiler' }
+			],
 			components: {
 				SocialIcons: './src/components/CustomHeader.astro',
 			},
@@ -29,7 +31,7 @@ export default defineConfig({
 						{ label: 'Introduction', slug: 'guides/introduction' },
 						{ label: 'Installation', slug: 'guides/installation' },
 						{ label: 'Quick Start', slug: 'guides/quickstart' },
-						{ label: 'Use Cases', slug: 'guides/usecases' },
+						{ label: 'Use Cases', slug: 'guides/usecases', badge: { text: 'Popular', variant: 'success' } },
 					],
 				},
 				{

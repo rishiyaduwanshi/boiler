@@ -1,7 +1,7 @@
 /* Import modern fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
-/* Custom font configuration - use Starlight's CSS variables */
+/* Custom font configuration */
 :root {
   --sl-font: 'Inter', system-ui, -apple-system, sans-serif;
   --sl-font-mono: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
@@ -14,4 +14,77 @@
 
 .site-title img {
   margin-right: 0 !important;
+}
+
+/* Hero section improvements */
+.hero {
+  padding-left: 0 !important;
+}
+
+.hero h1 {
+  font-size: clamp(2.5rem, 6vw, 4rem) !important;
+  font-weight: 800 !important;
+  line-height: 1.1 !important;
+  margin-bottom: 1rem !important;
+}
+
+.hero .tagline {
+  font-size: clamp(1rem, 2.5vw, 1.25rem) !important;
+  line-height: 1.6 !important;
+  opacity: 0.9 !important;
+  max-width: 600px !important;
+}
+
+.hero .actions {
+  margin-top: 2rem !important;
+}
+
+/* Hero image positioning */
+.hero-image-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 3rem auto;
+  max-width: 600px;
+}
+
+@media (min-width: 50rem) {
+  .hero-image-container {
+    position: absolute;
+    top: 50%;
+    right: 2rem;
+    transform: translateY(-50%);
+    margin: 0;
+    max-width: 650px;
+    width: 650px;
+  }
+}
+
+@media (min-width: 72rem) {
+  .hero-image-container {
+    max-width: 700px;
+    width: 700px;
+    right: 3rem;
+  }
+}
+
+/* Code blocks styling */
+.sl-markdown-content pre {
+  border-radius: 8px;
+  border: 1px solid hsla(var(--sl-hue-accent), 30%, 50%, 0.3);
+  transition: border-color 0.3s ease;
+}
+
+.sl-markdown-content pre:hover {
+  border-color: hsla(var(--sl-hue-accent), 50%, 60%, 0.5);
+}
+
+/* Cards hover effect */
+.card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px hsla(var(--sl-hue-accent), 40%, 50%, 0.15);
 }

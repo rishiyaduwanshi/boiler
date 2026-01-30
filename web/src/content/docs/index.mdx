@@ -1,48 +1,124 @@
 ---
 title: Welcome to Boiler
-description: CLI tool for managing code snippets and project stacks
+description: A modern CLI for managing code snippets and project templates with automatic versioning
 template: splash
 hero:
-  tagline: Store, version, and reuse your code snippets & project stacks effortlessly
+  title: <span style="background:linear-gradient(135deg,#ff6b6b,#4ecdc4,#45b7d1,#96ceb4,#ffeaa7,#fd79a8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:900;text-shadow:0 0 40px rgba(255,107,107,0.3);">Code Once. Reuse Forever.</span>
+  tagline: Store, version, and reuse code snippets across all your projects. Stop copy-pasting, start organizing.
+  image:
+    file: ../../../public/hero-illustration.svg
+    alt: Boiler CLI terminal animation
   actions:
     - text: Get Started
-      link: /guides/installation/
-      icon: right-arrow
+      link: /guides/quickstart/
+      icon: rocket
+      variant: primary
     - text: View on GitHub
       link: https://github.com/rishiyaduwanshi/boiler
-      icon: external
-      variant: minimal
+      icon: github
+      variant: secondary
 ---
 
 import { Card, CardGrid } from '@astrojs/starlight/components';
 
-## Features
+## Why Boiler?
+
+Stop copy-pasting code between projects. Stop maintaining scattered snippets in random files. **Boiler is your centralized code library** - store once, use everywhere.
 
 <CardGrid stagger>
-	<Card title="Auto-Versioning" icon="puzzle">
-		Never worry about overwriting. Automatic version management for all your resources.
+	<Card title="Smart Versioning" icon="puzzle">
+		Automatic version management with intelligent prompts. Overwrite or create new versions - you choose.
 	</Card>
-	<Card title="Lightning Fast" icon="rocket">
-		Built with Go for maximum performance. Store and retrieve in milliseconds.
+	<Card title="Blazing Fast" icon="rocket">
+		Written in Go for maximum performance. Store and retrieve in milliseconds.
 	</Card>
-	<Card title="Smart Detection" icon="approve-check">
-		Automatically detects file types and folder structures. No manual configuration needed.
+	<Card title="Template Variables" icon="pencil">
+		Dynamic snippets with customizable variables. One template, infinite configurations.
 	</Card>
-	<Card title="Language Agnostic" icon="translate">
-		Works with any programming language. One tool for all your projects.
+	<Card title="Universal" icon="translate">
+		Works with any language or file type.configs, Docker - everything.
+	</Card>
+	<Card title="Full Stacks" icon="open-book">
+		Store entire project templates. Express apps, React boilerplates, anything.
+	</Card>
+	<Card title="Zero Clutter" icon="approve-check">
+		Metadata stripped automatically. Get clean, production-ready code.
 	</Card>
 </CardGrid>
 
-## Quick Example
+## See It in Action
 
-```bash
-# Store a snippet
-bl store errorHandler.js
+### Store a Snippet with Variables
 
-# Use it in any project
-bl add errorHandler@1.js
+```javascript
+// errorHandler.js
+// __author John Doe
+// __desc Custom error handler with logging
+// __var bl__LOG_LEVEL = error
+// __var bl__NOTIFY_EMAIL = admin@example.com
+
+function handleError(err) {
+  console[bl__LOG_LEVEL](err.message);
+  sendEmail('bl__NOTIFY_EMAIL', err);
+}
 ```
 
-## Ready to start?
+```bash
+# Store it
+bl store errorHandler.js
+# ✓ Stored snippet 'errorHandler@1.js'
+```
 
-Check out the [Installation Guide](/guides/installation/) to get Boiler running in seconds!
+### Use It Anywhere
+
+```bash
+cd ~/new-project
+bl add errorHandler
+
+# Template variables found:
+#   bl__LOG_LEVEL [error]: warn
+#   bl__NOTIFY_EMAIL [admin@example.com]: dev@myapp.com
+# ✓ Snippet added: errorHandler@1.js → ./errorHandler.js
+```
+
+**Result:** Clean code with your custom values, no metadata comments!
+
+### Store Entire Projects
+
+```bash
+# Store your Express API template
+bl store ./express-api --stack
+
+# Use it for new projects
+mkdir my-new-api && cd my-new-api
+bl add express-api
+# ✓ Stack added: express-api@1 → .
+```
+
+## Built for Developers
+
+<CardGrid>
+	<Card title="For Solo Developers" icon="star">
+		Build your personal snippet library. Never rewrite the same code twice.
+	</Card>
+	<Card title="For Teams" icon="github">
+		Share standardized code templates. Keep team code consistent.
+	</Card>
+	<Card title="For Learners" icon="laptop">
+		Store useful patterns and examples. Build your reference collection.
+	</Card>
+</CardGrid>
+
+## Ready to Boost Productivity?
+
+Get Boiler installed in under a minute:
+
+```bash
+# Windows (PowerShell)
+iwr -useb https://boiler.iamabhinav.dev/install | iex
+
+# Linux/macOS
+curl -fsSL https://boiler.iamabhinav.dev/install | sh
+```
+
+👉 [Full Installation Guide](/guides/installation/) | [Quick Start Tutorial](/guides/quickstart/)

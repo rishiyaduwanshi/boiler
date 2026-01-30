@@ -1,6 +1,6 @@
 // __author Abhinav Prakash
 // __desc Async error handler
-// __version 1.0.0
+// __version 1
 // __var bl__CLASS_NAME = AppError
 // __var bl__FUNCTION_NAME, bl__ERROR_DESC, 
 // __var bl__ERROR_MESSAGE = "Internal Server Error"

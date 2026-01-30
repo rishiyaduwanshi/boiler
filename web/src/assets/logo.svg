@@ -1,30 +1,65 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
-  <!-- Background circle -->
-  <circle cx="100" cy="100" r="90" fill="#0a0a0a" stroke="#22c55e" stroke-width="4"/>
+  <defs>
+    <linearGradient id="logoGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ec4899;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="logoGrad2" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+    </linearGradient>
+    <filter id="logoGlow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
   
-  <!-- Stylized "B" made of stacked code blocks - centered and aligned -->
+  <!-- Outer ring with gradient -->
+  <circle cx="100" cy="100" r="90" fill="none" stroke="url(#logoGrad1)" stroke-width="3" opacity="0.4"/>
   
-  <!-- Top stack (shortest) -->
-  <rect x="70" y="55" width="55" height="22" rx="4" fill="#22c55e" opacity="0.95"/>
-  <line x1="80" y1="66" x2="95" y2="66" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round"/>
-  <line x1="100" y1="66" x2="115" y2="66" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round"/>
-  
-  <!-- Middle stack (medium) -->
-  <rect x="65" y="87" width="65" height="22" rx="4" fill="#22c55e" opacity="0.75"/>
-  <line x1="75" y1="98" x2="92" y2="98" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round"/>
-  <line x1="98" y1="98" x2="115" y2="98" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round"/>
-  
-  <!-- Bottom stack (longest) -->
-  <rect x="60" y="119" width="75" height="22" rx="4" fill="#22c55e" opacity="0.55"/>
-  <line x1="70" y1="130" x2="88" y2="130" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round"/>
-  <line x1="95" y1="130" x2="113" y2="130" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round"/>
-  <line x1="120" y1="130" x2="125" y2="130" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round"/>
-  
-  <!-- Code brackets overlay (subtle) -->
-  <g opacity="0.25">
-    <path d="M 42 85 L 38 85 L 32 100 L 38 115 L 42 115" 
-          stroke="#22c55e" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-    <path d="M 158 85 L 162 85 L 168 100 L 162 115 L 158 115" 
-          stroke="#22c55e" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Main "B" shape - modern stacked layers -->
+  <g filter="url(#logoGlow)">
+    <!-- Top layer -->
+    <rect x="65" y="50" width="70" height="24" rx="6" fill="url(#logoGrad1)" opacity="0.9"/>
+    <rect x="72" y="56" width="15" height="3" rx="1.5" fill="white" opacity="0.7"/>
+    <rect x="90" y="56" width="20" height="3" rx="1.5" fill="white" opacity="0.7"/>
+    <rect x="114" y="56" width="10" height="3" rx="1.5" fill="white" opacity="0.7"/>
+    
+    <rect x="72" y="63" width="20" height="3" rx="1.5" fill="white" opacity="0.5"/>
+    <rect x="95" y="63" width="15" height="3" rx="1.5" fill="white" opacity="0.5"/>
+    
+    <!-- Middle layer -->
+    <rect x="60" y="84" width="80" height="28" rx="6" fill="url(#logoGrad2)" opacity="0.85"/>
+    <rect x="68" y="91" width="18" height="3" rx="1.5" fill="white" opacity="0.7"/>
+    <rect x="89" y="91" width="25" height="3" rx="1.5" fill="white" opacity="0.7"/>
+    <rect x="118" y="91" width="12" height="3" rx="1.5" fill="white" opacity="0.7"/>
+    
+    <rect x="68" y="99" width="25" height="3" rx="1.5" fill="white" opacity="0.5"/>
+    <rect x="96" y="99" width="18" height="3" rx="1.5" fill="white" opacity="0.5"/>
+    
+    <!-- Bottom layer -->
+    <rect x="55" y="122" width="90" height="32" rx="6" fill="url(#logoGrad1)" opacity="0.75"/>
+    <rect x="64" y="130" width="20" height="3" rx="1.5" fill="white" opacity="0.7"/>
+    <rect x="87" y="130" width="28" height="3" rx="1.5" fill="white" opacity="0.7"/>
+    <rect x="119" y="130" width="15" height="3" rx="1.5" fill="white" opacity="0.7"/>
+    
+    <rect x="64" y="138" width="28" height="3" rx="1.5" fill="white" opacity="0.5"/>
+    <rect x="95" y="138" width="20" height="3" rx="1.5" fill="white" opacity="0.5"/>
+    <rect x="119" y="138" width="10" height="3" rx="1.5" fill="white" opacity="0.5"/>
   </g>
+  
+  <!-- Decorative code brackets -->
+  <g opacity="0.3">
+    <path d="M 35 85 L 30 85 L 25 100 L 30 115 L 35 115" 
+          stroke="url(#logoGrad1)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <path d="M 165 85 L 170 85 L 175 100 L 170 115 L 165 115" 
+          stroke="url(#logoGrad2)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+  
+  <!-- Small accent dots -->
+  <circle cx="100" cy="40" r="3" fill="url(#logoGrad1)" opacity="0.6"/>
+  <circle cx="100" cy="160" r="3" fill="url(#logoGrad2)" opacity="0.6"/>
 </svg>
