@@ -8,12 +8,21 @@ on:
       - 'internal/cli/*.go'
   workflow_dispatch:
 
+# Skip workflow if commit message contains [skip ci]
+# Or if commit is from github-actions itself
+concurrency:
+  group: docs-generation
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
 jobs:
   generate-docs:
     runs-on: ubuntu-latest
+    
+    # Skip if commit is from github-actions (prevent infinite loop)
+    if: "!contains(github.event.head_commit.message, '[skip ci]') && github.actor != 'github-actions[bot]'"
     
     steps:
       - uses: actions/checkout@v4
@@ -29,15 +38,14 @@ jobs:
       
       - name: Commit docs
         run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           git add web/src/content/docs/commands/*.md
           
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            COMMIT_MSG="docs: github-actions generate command documentation (manual)"
+            COMMIT_MSG="docs: update command documentation (manual) [skip ci]"
           else
-            COMMIT_MSG="docs: github-actions generate command documentation (auto)"
+            COMMIT_MSG="docs: update command documentation [skip ci]"
           fi
           
-          git diff --quiet && git diff --staged --quiet || git commit -m "$COMMIT_MSG"
-          git push
+          git diff --quiet && git diff --staged --quiet || (git commit -m "$COMMIT_MSG" && git push)
