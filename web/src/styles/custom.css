@@ -6,3 +6,12 @@
   --sl-font: 'Inter', system-ui, -apple-system, sans-serif;
   --sl-font-mono: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
 }
+
+/* Fix logo spacing in header */
+.site-title {
+  gap: 0.5rem !important;
+}
+
+.site-title img {
+  margin-right: 0 !important;
+}

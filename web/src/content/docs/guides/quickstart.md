@@ -5,17 +5,7 @@ description: Get started with Boiler in 5 minutes
 
 Learn the basics of Boiler in just a few minutes.
 
-## 1. Initialize Boiler
-
-First, initialize Boiler:
-
-```bash
-bl init
-```
-
-This creates the store directory and configuration.
-
-## 2. Store Your First Snippet
+## 1. Store Your First Snippet
 
 Create and store a simple error handler:
 
@@ -29,7 +19,7 @@ bl store errorHandler.js
 
 Output: `✓ Snippet stored: errorHandler@1.js`
 
-## 3. List Your Snippets
+## 2. List Your Snippets
 
 View all your stored snippets:
 
@@ -46,7 +36,7 @@ Output:
   No stacks found
 ```
 
-## 4. Use the Snippet in Another Project
+## 3. Use the Snippet in Another Project
 
 Navigate to a different directory and add the snippet:
 
@@ -59,7 +49,7 @@ Output: `✓ Snippet added: errorHandler@1.js → ./errorHandler.js`
 
 The snippet is copied to your current directory!
 
-## 5. Store a Project Stack
+## 4. Store a Project Stack
 
 Store an entire project directory as a stack:
 
@@ -70,7 +60,7 @@ bl store ./my-express-app --stack --name express-starter
 
 Output: `✓ Stored stack 'express-starter@1' at /path/to/store/stacks/express-starter@1`
 
-## 6. Initialize a New Project from Stack
+## 5. Initialize a New Project from Stack
 
 Start a new project using your stack:
 
@@ -120,7 +110,6 @@ bl clean <name>              # Remove a resource
 
 ## What You've Learned
 
-- ✓ Initialize Boiler with `bl init`
 - ✓ Store files as snippets with `bl store`
 - ✓ Store directories as stacks with `bl store --stack`
 - ✓ List resources with `bl ls`

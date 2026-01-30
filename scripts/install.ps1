@@ -172,3 +172,5 @@ Write-Host ""
 Write-Host "Note: Restart your terminal for PATH changes to take effect" -ForegroundColor Yellow
 Write-Host ""
 Write-Host "To uninstall: Run 'bl self uninstall' or 'powershell $INSTALL_DIR\uninstall.ps1'" -ForegroundColor Cyan
+
+bl 

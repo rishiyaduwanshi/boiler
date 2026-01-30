@@ -1,0 +1,17 @@
+---
+import Default from "@astrojs/starlight/components/SocialIcons.astro";
+import { LinkButton } from "@astrojs/starlight/components";
+---
+
+<LinkButton class={"medium-btn"} href="/guides/usecases/" variant="secondary">
+	Use Cases
+</LinkButton>
+<Default><slot /></Default>
+
+<style>
+	.medium-btn {
+		padding: 0.5rem 0.8rem;
+	}
+
+	
+</style>

@@ -127,7 +127,10 @@ func addSnippet(st *store.Store, name, destPath string) error {
 		return fmt.Errorf(utils.ErrResourceNotFound, "snippet file", snippetPath)
 	}
 
-	destFile := filepath.Join(destPath, filepath.Base(snippetPath))
+	// Extract base name without version: errorHandler@1.js -> errorHandler.js
+	baseName, _, ext := store.ParseResourceName(name)
+	destFileName := baseName + ext
+	destFile := filepath.Join(destPath, destFileName)
 
 	if utils.FileExists(destFile) && !addForce {
 		return fmt.Errorf(utils.ErrFileAlreadyExists, destFile)

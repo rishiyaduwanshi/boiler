@@ -120,10 +120,8 @@ func ValidateSnippetMetadata(meta *SnippetMetadata) error {
 	if meta.Author == "" {
 		return fmt.Errorf("missing required field: __author")
 	}
-	if meta.Version == "" {
-		return fmt.Errorf("missing required field: __version")
-	}
-	// Name and Description are optional - can be derived from filename
+	// Name, Description, and Version are optional
+	// Version auto-increments based on existing versions in store
 	return nil
 }
 
@@ -133,12 +131,10 @@ func ValidateSnippetMetadata(meta *SnippetMetadata) error {
 func GenerateSnippetTemplate(filePath string, meta CommonMetadata, commentPrefix string) error {
 	content := fmt.Sprintf(`%s__author %s
 %s__desc %s
-%s__version %s
 %s__var bl__EXAMPLE_VAR = DefaultValue
 
 // Your code here
-`, commentPrefix, meta.Author, commentPrefix, meta.Description, 
-   commentPrefix, meta.Version, commentPrefix)
+`, commentPrefix, meta.Author, commentPrefix, meta.Description, commentPrefix)
 
 	if err := os.WriteFile(filePath, []byte(content), 0644); err != nil {
 		return fmt.Errorf("failed to write file: %w", err)

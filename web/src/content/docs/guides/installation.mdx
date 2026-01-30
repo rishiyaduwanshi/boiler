@@ -119,12 +119,16 @@ bl version
 
 You should see the version information displayed.
 
-## Initialize Boiler
+## Next Steps
 
-After installation, initialize Boiler to set up your local store:
+Boiler is ready to use! The store is automatically created when you store your first snippet or stack.
 
 ```bash
-bl init
+# Store your first snippet
+bl store myfile.js
+
+# Or use bl init to create config files (npm-init pattern)
+bl init  # Interactive prompt to create boiler.config.json or snippet files
 ```
 
-This creates the necessary directories and configuration files.
+Check out the [Quick Start guide](/guides/quickstart/) to learn the basics!

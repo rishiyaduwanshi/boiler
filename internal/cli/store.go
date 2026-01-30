@@ -26,6 +26,13 @@ var storeCmd = &cobra.Command{
 Files are stored as snippets with version numbers.
 Directories must have a boiler.stack.json config file (run 'bl init' first).
 
+Version Management:
+  If snippet already exists, you'll be prompted with options:
+    (o) Overwrite - Replace the latest version with new content
+    (n) New version - Create a new incremental version
+    (c) Cancel - Abort the operation
+  First-time storage automatically creates version 1
+
 Stacks require boiler.stack.json with:
   - id: Stack name
   - version: Version number
@@ -35,8 +42,16 @@ If a stack version already exists, you'll be prompted to overwrite.`,
 	Example: `  # Store current directory as stack
   bl store
 
-  # Store specific file as snippet
+  # Store specific file as snippet (first version)
   bl store ./utils/logger.js
+  # Output: ✓ Stored snippet 'logger@1.js'
+
+  # Store again - prompts for action
+  bl store ./utils/logger.js
+  # Prompt: Snippet 'logger' already exists (1 version(s)). Options:
+  #   (o) Overwrite latest version (1)
+  #   (n) Create new version (2)
+  #   (c) Cancel
 
   # Store directory as stack
   bl store ./my-template
@@ -116,9 +131,9 @@ func storeSnippet(st *store.Store, path string) error {
 		return fmt.Errorf("failed to parse snippet metadata: %w", err)
 	}
 
-	// Validate required fields
+	// Validate required fields (only author needed)
 	if err := utils.ValidateSnippetMetadata(meta); err != nil {
-		return fmt.Errorf("invalid snippet metadata: %w\n\nAdd required metadata comments:\n  // __author Your Name\n  // __version 1", err)
+		return fmt.Errorf("invalid snippet metadata: %w\n\nAdd required metadata comment:\n  // __author Your Name", err)
 	}
 
 	// Use metadata name if no custom name provided
@@ -130,10 +145,38 @@ func storeSnippet(st *store.Store, path string) error {
 		}
 	}
 
-	// Parse version from metadata
-	version, err := strconv.Atoi(meta.Version)
-	if err != nil {
-		return fmt.Errorf("invalid version in snippet metadata: %s (must be a number)", meta.Version)
+	// Check if any version of this snippet exists
+	existingVersions := st.GetAllVersions(storeName, ext)
+	var version int
+	var fullName string
+	
+	if len(existingVersions) > 0 {
+		// Snippet already exists
+		latestVersion := existingVersions[len(existingVersions)-1]
+		
+		choice, err := utils.Prompt(fmt.Sprintf(
+			"Snippet '%s' already exists (%d version(s)). Options:\n  (o) Overwrite latest version (%d)\n  (n) Create new version (%d)\n  (c) Cancel\nChoice: ",
+			storeName+ext, len(existingVersions), latestVersion, latestVersion+1))
+		if err != nil {
+			return fmt.Errorf("failed to read input: %w", err)
+		}
+		
+		choice = strings.ToLower(strings.TrimSpace(choice))
+		switch choice {
+		case "o", "overwrite":
+			// Overwrite latest version
+			version = latestVersion
+		case "n", "new":
+			// Create new version
+			version = latestVersion + 1
+		case "c", "cancel":
+			return fmt.Errorf("cancelled by user")
+		default:
+			return fmt.Errorf("invalid choice '%s'. Use 'o' for overwrite, 'n' for new version, or 'c' to cancel", choice)
+		}
+	} else {
+		// First version
+		version = 1
 	}
 
 	// Determine the language directory based on extension
@@ -144,16 +187,11 @@ func storeSnippet(st *store.Store, path string) error {
 	}
 
 	// Build full name with version
-	fullName := fmt.Sprintf("%s@%d%s", storeName, version, ext)
+	fullName = fmt.Sprintf("%s@%d%s", storeName, version, ext)
 	destPath := filepath.Join(snippetDir, filepath.Base(fullName))
 
-	// Check if this version already exists
+	// If overwriting, remove old version
 	if st.SnippetExists(fullName) {
-		choice, err := utils.Prompt(fmt.Sprintf("Snippet '%s' already exists. Overwrite? (y/n): ", fullName))
-		if err != nil || strings.ToLower(strings.TrimSpace(choice)) != "y" {
-			return fmt.Errorf("cancelled")
-		}
-		// Remove old version
 		if err := st.RemoveSnippet(fullName); err != nil {
 			return fmt.Errorf("failed to remove old snippet: %w", err)
 		}

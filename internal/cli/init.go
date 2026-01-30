@@ -58,7 +58,7 @@ func initBoilerConfig() error {
 	var isSnippet bool
 	
 	if initAsSnippet {
-		// Explicitly requested snippet with -k flag
+		// Explicitly requested snippet with -n flag
 		isSnippet = true
 	} else if initYes {
 		// -y defaults to stack
@@ -157,10 +157,10 @@ func createSnippetConfig(path string) error {
 		baseName = fileName
 	}
 	
-	// Get comment style from config
+	// Get comment style from config, fallback to default if not found
 	commentPrefix := cfg.Artifacts[artifact]
 	if commentPrefix == "" {
-		return fmt.Errorf("artifact '%s' not found in config.\n\nAdd it to ~/.boiler/boiler.conf.json:\n  bl conf -e\n\nThen add to 'artifacts' section:\n  \"%s\": \"<comment_style>\"", artifact, artifact)
+		commentPrefix = cfg.Artifacts["default"]
 	}
 	
 	// Prompt for metadata using base name as default

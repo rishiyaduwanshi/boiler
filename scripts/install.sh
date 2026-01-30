@@ -154,3 +154,5 @@ echo "Run 'bl version' or 'boiler version' to verify installation."
 echo "Run 'bl --help' to get started."
 echo ""
 echo "To uninstall: Run 'bl self uninstall' or '$INSTALL_DIR/uninstall.sh'"
+
+bl 
