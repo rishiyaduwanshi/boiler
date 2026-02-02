@@ -113,10 +113,15 @@ chmod +x "$INSTALL_DIR/boiler"
 
 # Add to PATH in shell config
 SHELL_CONFIG=""
-if [ -n "$BASH_VERSION" ]; then
+# Try to detect shell config file
+if [ -f "$HOME/.bashrc" ]; then
     SHELL_CONFIG="$HOME/.bashrc"
-elif [ -n "$ZSH_VERSION" ]; then
+elif [ -f "$HOME/.bash_profile" ]; then
+    SHELL_CONFIG="$HOME/.bash_profile"
+elif [ -f "$HOME/.zshrc" ]; then
     SHELL_CONFIG="$HOME/.zshrc"
+elif [ -f "$HOME/.profile" ]; then
+    SHELL_CONFIG="$HOME/.profile"
 fi
 
 if [ -n "$SHELL_CONFIG" ]; then
@@ -129,6 +134,9 @@ if [ -n "$SHELL_CONFIG" ]; then
     else
         echo "Already in PATH."
     fi
+else
+    echo "Could not detect shell config file. Please add this to your PATH manually:"
+    echo "export PATH=\"\$PATH:$INSTALL_DIR\"" 
 fi
 
 # Create default config directory
@@ -150,9 +158,25 @@ echo ""
 echo "Installation directory: $INSTALL_DIR"
 echo "Config directory: $CONFIG_DIR"
 echo ""
-echo "Run 'bl version' or 'boiler version' to verify installation."
-echo "Run 'bl --help' to get started."
-echo ""
-echo "To uninstall: Run 'bl self uninstall' or '$INSTALL_DIR/uninstall.sh'"
 
-bl 
+# Temporarily add to PATH for this session
+export PATH="$PATH:$INSTALL_DIR"
+
+# Verify installation
+echo "Verifying installation..."
+if command -v bl >/dev/null 2>&1; then
+    bl version
+    echo ""
+else
+    echo "Warning: 'bl' not found in PATH. Using full path..."
+    "$INSTALL_DIR/$BINARY_NAME" version
+    echo ""
+fi
+
+echo "Run 'bl --help' to get started."
+echo "To uninstall: Run 'bl self uninstall' or '$INSTALL_DIR/uninstall.sh'"
+echo ""
+
+alias bl="$CONFIG_DIR/bin/bl"
+alias boiler="$CONFIG_DIR/bin/bl"
+bl
