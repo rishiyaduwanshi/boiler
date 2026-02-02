@@ -13,11 +13,11 @@ echo "Installing Boiler CLI..."
 mkdir -p "$INSTALL_DIR"
 
 # Detect OS and architecture
-OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+OS=$(uname -s)  # Keep capitalized: Darwin, Linux
 ARCH=$(uname -m)
 
 case "$ARCH" in
-    x86_64|amd64) ARCH="amd64" ;;
+    x86_64|amd64) ARCH="x86_64" ;;  # Keep as x86_64 to match release naming
     arm64|aarch64) ARCH="arm64" ;;
     *) echo "Unsupported architecture: $ARCH"; exit 1 ;;
 esac
@@ -25,7 +25,7 @@ esac
 # Fetch latest release
 echo "Fetching latest release..."
 RELEASE_URL="https://api.github.com/repos/$REPO/releases/latest"
-DOWNLOAD_URL=$(curl -s $RELEASE_URL | grep "browser_download_url.*${OS}.*${ARCH}" | cut -d '"' -f 4 | head -n 1)
+DOWNLOAD_URL=$(curl -s $RELEASE_URL | grep  -i "browser_download_url.*${OS}.*${ARCH}" | cut -d '"' -f 4 | head -n 1)
 
 if [ -z "$DOWNLOAD_URL" ]; then
     echo "No binary found for $OS-$ARCH"
