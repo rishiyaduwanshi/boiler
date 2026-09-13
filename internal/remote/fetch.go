@@ -390,13 +390,17 @@ func parseHostedStackRefAndSubPath(rawURL string) (ref, subPath string, ok bool)
 
 // Helper functions
 
-func withHTTPGet(url string, timeout time.Duration, consume func(io.Reader) error) error {
+func withHTTPGet(rawURL string, timeout time.Duration, consume func(io.Reader) error) error {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, rawURL, nil)
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
+	}
+
+	if key, value := authHeaderForURL(rawURL); key != "" {
+		req.Header.Set(key, value)
 	}
 
 	resp, err := http.DefaultClient.Do(req)
@@ -414,6 +418,33 @@ func withHTTPGet(url string, timeout time.Duration, consume func(io.Reader) erro
 	}
 
 	return nil
+}
+
+// authHeaderForURL returns an Authorization header key-value pair for the
+// given URL if a matching provider token is set in the environment.
+//
+// Supported env vars (industry-standard names):
+//
+//	GITHUB_TOKEN    → github.com, raw.githubusercontent.com
+//	GITLAB_TOKEN    → gitlab.com
+//	BITBUCKET_TOKEN → bitbucket.org
+func authHeaderForURL(rawURL string) (key, value string) {
+	lower := strings.ToLower(rawURL)
+	switch {
+	case strings.Contains(lower, "github.com") || strings.Contains(lower, "raw.githubusercontent.com"):
+		if token := os.Getenv("GITHUB_TOKEN"); token != "" {
+			return "Authorization", "Bearer " + token
+		}
+	case strings.Contains(lower, "gitlab.com"):
+		if token := os.Getenv("GITLAB_TOKEN"); token != "" {
+			return "Authorization", "Bearer " + token
+		}
+	case strings.Contains(lower, "bitbucket.org"):
+		if token := os.Getenv("BITBUCKET_TOKEN"); token != "" {
+			return "Authorization", "Bearer " + token
+		}
+	}
+	return "", ""
 }
 
 // downloadFile downloads a file from URL and returns its content
