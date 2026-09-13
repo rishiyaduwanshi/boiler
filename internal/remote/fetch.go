@@ -420,26 +420,45 @@ func withHTTPGet(rawURL string, timeout time.Duration, consume func(io.Reader) e
 	return nil
 }
 
+var githubHosts = map[string]bool{
+	constants.ProviderGithubHost:    true,
+	constants.ProviderGithubWWW:     true,
+	constants.ProviderGithubRawHost: true,
+	constants.ProviderGithubAPI:     true,
+}
+
+var gitlabHosts = map[string]bool{
+	constants.ProviderGitlabHost: true,
+	constants.ProviderGitlabWWW:  true,
+}
+
+var bitbucketHosts = map[string]bool{
+	constants.ProviderBitbucketHost: true,
+	constants.ProviderBitbucketWWW:  true,
+}
+
 // authHeaderForURL returns an Authorization header key-value pair for the
-// given URL if a matching provider token is set in the environment.
+// Supported env vars :
 //
-// Supported env vars (industry-standard names):
-//
-//	GITHUB_TOKEN    → github.com, raw.githubusercontent.com
-//	GITLAB_TOKEN    → gitlab.com
-//	BITBUCKET_TOKEN → bitbucket.org
+//	GITHUB_TOKEN    → github.com, www.github.com, raw.githubusercontent.com, api.github.com
+//	GITLAB_TOKEN    → gitlab.com, www.gitlab.com
+//	BITBUCKET_TOKEN → bitbucket.org, www.bitbucket.org
 func authHeaderForURL(rawURL string) (key, value string) {
-	lower := strings.ToLower(rawURL)
+	parsed, err := url.Parse(rawURL)
+	if err != nil {
+		return "", ""
+	}
+	host := strings.ToLower(parsed.Hostname())
 	switch {
-	case strings.Contains(lower, "github.com") || strings.Contains(lower, "raw.githubusercontent.com"):
+	case githubHosts[host]:
 		if token := os.Getenv("GITHUB_TOKEN"); token != "" {
 			return "Authorization", "Bearer " + token
 		}
-	case strings.Contains(lower, "gitlab.com"):
+	case gitlabHosts[host]:
 		if token := os.Getenv("GITLAB_TOKEN"); token != "" {
 			return "Authorization", "Bearer " + token
 		}
-	case strings.Contains(lower, "bitbucket.org"):
+	case bitbucketHosts[host]:
 		if token := os.Getenv("BITBUCKET_TOKEN"); token != "" {
 			return "Authorization", "Bearer " + token
 		}
