@@ -86,8 +86,20 @@ func gitCloneArgs(cloneURL, ref, dest string) []string {
 	return []string{"clone", "--depth", "1", "--branch", ref, "--single-branch", cloneURL, dest}
 }
 
+// gitAuthArgs returns git -c args that inject a provider Bearer token into
+// the HTTPS transport for rawURL via http.extraHeader. Returns nil for
+// public URLs or when no matching provider token is set in the environment.
+func gitAuthArgs(rawURL string) []string {
+	key, value := authHeaderForURL(rawURL)
+	if key == "" {
+		return nil
+	}
+	return []string{"-c", fmt.Sprintf("http.extraHeader=%s: %s", key, value)}
+}
+
 func cloneGitRepository(p Provider, owner, repo, cloneURL, ref, dest string) error {
-	if err := runGit(gitCloneArgs(cloneURL, ref, dest)...); err == nil {
+	authArgs := gitAuthArgs(cloneURL)
+	if err := runGit(append(authArgs, gitCloneArgs(cloneURL, ref, dest)...)...); err == nil {
 		return nil
 	}
 	if isAbbreviatedCommitSHA(ref) {
@@ -163,6 +175,7 @@ func isHexObjectID(ref string) bool {
 }
 
 func cloneGitCommit(cloneURL, ref, dest string) error {
+	authArgs := gitAuthArgs(cloneURL)
 	steps := []struct {
 		name string
 		args []string
@@ -174,7 +187,7 @@ func cloneGitCommit(cloneURL, ref, dest string) error {
 	}
 
 	for _, step := range steps {
-		if err := runGit(step.args...); err != nil {
+		if err := runGit(append(authArgs, step.args...)...); err != nil {
 			return fmt.Errorf("git %s failed: %w", step.name, err)
 		}
 	}

@@ -390,13 +390,17 @@ func parseHostedStackRefAndSubPath(rawURL string) (ref, subPath string, ok bool)
 
 // Helper functions
 
-func withHTTPGet(url string, timeout time.Duration, consume func(io.Reader) error) error {
+func withHTTPGet(rawURL string, timeout time.Duration, consume func(io.Reader) error) error {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, rawURL, nil)
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
+	}
+
+	if key, value := authHeaderForURL(rawURL); key != "" {
+		req.Header.Set(key, value)
 	}
 
 	resp, err := http.DefaultClient.Do(req)
@@ -414,6 +418,52 @@ func withHTTPGet(url string, timeout time.Duration, consume func(io.Reader) erro
 	}
 
 	return nil
+}
+
+var githubHosts = map[string]bool{
+	constants.ProviderGithubHost:    true,
+	constants.ProviderGithubWWW:     true,
+	constants.ProviderGithubRawHost: true,
+	constants.ProviderGithubAPI:     true,
+}
+
+var gitlabHosts = map[string]bool{
+	constants.ProviderGitlabHost: true,
+	constants.ProviderGitlabWWW:  true,
+}
+
+var bitbucketHosts = map[string]bool{
+	constants.ProviderBitbucketHost: true,
+	constants.ProviderBitbucketWWW:  true,
+}
+
+// authHeaderForURL returns an Authorization header key-value pair for the
+// Supported env vars :
+//
+//	GITHUB_TOKEN    → github.com, www.github.com, raw.githubusercontent.com, api.github.com
+//	GITLAB_TOKEN    → gitlab.com, www.gitlab.com
+//	BITBUCKET_TOKEN → bitbucket.org, www.bitbucket.org
+func authHeaderForURL(rawURL string) (key, value string) {
+	parsed, err := url.Parse(rawURL)
+	if err != nil {
+		return "", ""
+	}
+	host := strings.ToLower(parsed.Hostname())
+	switch {
+	case githubHosts[host]:
+		if token := os.Getenv("GITHUB_TOKEN"); token != "" {
+			return "Authorization", "Bearer " + token
+		}
+	case gitlabHosts[host]:
+		if token := os.Getenv("GITLAB_TOKEN"); token != "" {
+			return "Authorization", "Bearer " + token
+		}
+	case bitbucketHosts[host]:
+		if token := os.Getenv("BITBUCKET_TOKEN"); token != "" {
+			return "Authorization", "Bearer " + token
+		}
+	}
+	return "", ""
 }
 
 // downloadFile downloads a file from URL and returns its content
