@@ -44,10 +44,11 @@ bl [flags]
 ### Options
 
 ```
-      --global    Force global scope for this command
-  -h, --help      help for bl
-      --local     Force local scope for this command
-  -V, --verbose   Enable verbose debug output
-  -v, --version   Show version information
+      --global     Force global scope for this command
+  -h, --help       help for bl
+      --local      Force local scope for this command
+      --no-color   Disable colors and animated progress (also honors NO_COLOR)
+  -V, --verbose    Enable verbose debug output
+  -v, --version    Show version information
 ```
 

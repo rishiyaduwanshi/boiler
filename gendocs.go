@@ -18,6 +18,7 @@ var markdownListPrefixRe = regexp.MustCompile(`^([-*+]\s+|\d+\.\s+)`)
 var markdownPlaceholderTokenRe = regexp.MustCompile(`\[[A-Za-z0-9_./|=-]+\]`)
 var markdownAnglePlaceholderRe = regexp.MustCompile(`<[A-Za-z][A-Za-z0-9_-]*>`)
 var markdownPlainURLRe = regexp.MustCompile(`https?://[^\s)]+`)
+var markdownOptionsSectionsRe = regexp.MustCompile("(?ms)(?:^### Options\n\n```\n(.*?)^```\n\n)?^### Options inherited from parent commands\n\n```\n(.*?)^```")
 
 func main() {
 	rootCmd := cli.GetRootCommand()
@@ -83,6 +84,7 @@ func processFile(filePath string) error {
 
 	// Remove first heading (title is in frontmatter)
 	cleanContent = strings.TrimPrefix(cleanContent, lines[0]+"\n\n")
+	cleanContent = mergeInheritedOptions(cleanContent)
 	cleanContent = sanitizeMarkdownIndent(cleanContent)
 
 	// Add Starlight frontmatter
@@ -94,6 +96,19 @@ description: Command reference for %s
 %s`, title, title, cleanContent)
 
 	return os.WriteFile(filePath, []byte(finalContent), 0644)
+}
+
+// mergeInheritedOptions combines Cobra's adjacent flag sections into one code block.
+func mergeInheritedOptions(content string) string {
+	return markdownOptionsSectionsRe.ReplaceAllStringFunc(content, func(section string) string {
+		matches := markdownOptionsSectionsRe.FindStringSubmatch(section)
+		flags := matches[1]
+		if flags != "" {
+			flags += "\n# global flags (inherited)\n"
+		}
+		flags += matches[2]
+		return "### Options\n\n```\n" + flags + "```"
+	})
 }
 
 func sanitizeMarkdownIndent(content string) string {

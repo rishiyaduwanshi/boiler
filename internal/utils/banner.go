@@ -3,28 +3,8 @@ package utils
 import (
 	"fmt"
 
-	"github.com/charmbracelet/lipgloss"
+	"github.com/rishiyaduwanshi/boiler/internal/ui"
 	"github.com/rishiyaduwanshi/boiler/pkg/version"
-)
-
-var (
-	primaryStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("86")).
-			Bold(true)
-
-	secondaryStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("42"))
-
-	subtitleStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("240"))
-
-	authorStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("238")).
-			Italic(true)
-
-	versionStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("226")).
-			Bold(true)
 )
 
 func ShowBanner() {
@@ -37,18 +17,18 @@ func ShowBanner() {
 ╚═════╝  ╚═════╝ ╚═╝╚══════╝╚══════╝╚═╝  ╚═╝                                   
 `
 
-	fmt.Println(primaryStyle.Render(art))
-	fmt.Println(subtitleStyle.Render("Code Snippet & Stack Manager"))
-	fmt.Print(secondaryStyle.Render("Version: "))
-	fmt.Println(versionStyle.Render(version.Version))
-	fmt.Println(authorStyle.Render("by Abhinav Prakash"))
+	ui.Info.Println(art)
+	ui.Muted.Println("Code Snippet & Stack Manager")
+	ui.Info.Printf("Version: ")
+	ui.Warning.Println(version.Version)
+	ui.Muted.Println("by Abhinav Prakash")
 }
 
 func ShowQuickHelp() {
-	fmt.Println("\nQuick Commands:")
-	fmt.Println("  bl add <resource>        Add snippet or stack")
-	fmt.Println("  bl store <path>          Store as snippet/stack")
-	fmt.Println("  bl ls                   List all resources")
-	fmt.Println("  bl --help                Show full help")
+	ui.Header.Println("\nQuick Commands:")
+	ui.Info.Println("  bl add <resource>        Add snippet or stack")
+	ui.Info.Println("  bl store <path>          Store as snippet/stack")
+	ui.Info.Println("  bl ls                   List all resources")
+	ui.Info.Println("  bl --help                Show full help")
 	fmt.Println()
 }

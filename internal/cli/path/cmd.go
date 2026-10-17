@@ -1,10 +1,9 @@
 package path
 
 import (
-	"fmt"
 	"github.com/rishiyaduwanshi/boiler/internal/config"
+	"github.com/rishiyaduwanshi/boiler/internal/ui"
 	"github.com/rishiyaduwanshi/boiler/internal/utils"
-
 	"github.com/spf13/cobra"
 )
 
@@ -26,12 +25,12 @@ Shows:
   # Use in scripts
   cd $(bl path | grep Store | cut -d: -f2)`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("Boiler root: %s\n", cfg.Paths.Root)
-		fmt.Printf("Store:       %s\n", cfg.Paths.Store)
-		fmt.Printf("Snippets:    %s\n", cfg.Paths.Snippets)
-		fmt.Printf("Stacks:      %s\n", cfg.Paths.Stacks)
-		fmt.Printf("Logs:        %s\n", cfg.Paths.Logs)
-		fmt.Printf("Bin:         %s\n", cfg.Paths.Bin)
+		ui.Info.Printf("Boiler root: %s\n", ui.Path.Render(cfg.Paths.Root))
+		ui.Info.Printf("Store:       %s\n", ui.Path.Render(cfg.Paths.Store))
+		ui.Info.Printf("Snippets:    %s\n", ui.Path.Render(cfg.Paths.Snippets))
+		ui.Info.Printf("Stacks:      %s\n", ui.Path.Render(cfg.Paths.Stacks))
+		ui.Info.Printf("Logs:        %s\n", ui.Path.Render(cfg.Paths.Logs))
+		ui.Info.Printf("Bin:         %s\n", ui.Path.Render(cfg.Paths.Bin))
 	},
 }
 

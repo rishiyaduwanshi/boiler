@@ -27,6 +27,7 @@ import (
 	"github.com/rishiyaduwanshi/boiler/internal/config"
 	"github.com/rishiyaduwanshi/boiler/internal/constants"
 	"github.com/rishiyaduwanshi/boiler/internal/remote"
+	"github.com/rishiyaduwanshi/boiler/internal/ui"
 	"github.com/rishiyaduwanshi/boiler/internal/utils"
 	"github.com/spf13/cobra"
 )
@@ -143,7 +144,10 @@ func Execute(m *config.Manager, log *utils.Logger) error {
 	versioncmd.Setup(cfg, logger)
 
 	rootCmd.SilenceErrors = true
-	rootCmd.SetArgs(aliascmd.ExpandFirstCommandAlias(os.Args[1:]))
+	args := aliascmd.ExpandFirstCommandAlias(os.Args[1:])
+	ConfigureOutput(args)
+	ApplyOutputToEnvironment()
+	rootCmd.SetArgs(args)
 	ensureCommandDocsNormalized()
 	return rootCmd.Execute()
 }
@@ -161,9 +165,13 @@ func ensureCommandDocsNormalized() {
 }
 
 func init() {
+	configureHelp(rootCmd)
+
 	// Add version flag
 	rootCmd.Flags().BoolP("version", "v", false, "Show version information")
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "V", false, "Enable verbose debug output")
+
+	rootCmd.PersistentFlags().BoolVar(&ui.NoColor, "no-color", false, "Disable colors and animated progress (also honors NO_COLOR)")
 
 	// Add Scope flags
 	rootCmd.PersistentFlags().BoolVar(&isGlobal, "global", false, "Force global scope for this command")

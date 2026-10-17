@@ -114,6 +114,37 @@ func TestExpandFirstCommandAlias_ReplacesFirstToken(t *testing.T) {
 	}
 }
 
+func TestExpandFirstCommandAlias_PreservesLeadingNoColorFlag(t *testing.T) {
+	setupAliasCommandTest(t)
+	cfg.Aliases["ll"] = "ls"
+
+	tests := []struct {
+		name string
+		args []string
+		want []string
+	}{
+		{
+			name: "flag before alias",
+			args: []string{"--no-color", "ll", "--snippets"},
+			want: []string{"--no-color", "ls", "--snippets"},
+		},
+		{
+			name: "flag after alias",
+			args: []string{"ll", "--no-color", "--snippets"},
+			want: []string{"ls", "--no-color", "--snippets"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := ExpandFirstCommandAlias(tt.args)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Fatalf("ExpandFirstCommandAlias(%v) = %v, want %v", tt.args, got, tt.want)
+			}
+		})
+	}
+}
+
 func TestExpandFirstCommandAlias_ExpandsTemplateTokens(t *testing.T) {
 	setupAliasCommandTest(t)
 	cfg.Aliases["sexp"] = "search express -r --registry https://github.com/Rishiyaduwanshi/boiler"

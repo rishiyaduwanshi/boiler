@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/rishiyaduwanshi/boiler/internal/config"
+	"github.com/rishiyaduwanshi/boiler/internal/ui"
 	"github.com/rishiyaduwanshi/boiler/internal/utils"
 	"github.com/spf13/cobra"
 )
@@ -51,7 +52,7 @@ Examples:
 		}
 
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			ui.Error.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}
 	},
@@ -111,7 +112,7 @@ func setVarFromAssignment(assignment string) error {
 	}
 
 	logger.Info(fmt.Sprintf("Variable set: %s", key))
-	fmt.Printf("✓ Variable '%s' set\n", key)
+	ui.Success.Printf("✓ Variable '%s' set\n", key)
 	return nil
 }
 
@@ -135,7 +136,7 @@ func getVarByName(rawKey string) error {
 func listVars() error {
 	EnsureConfigVars()
 	if len(cfg.Vars) == 0 {
-		fmt.Println("No variables configured")
+		ui.Muted.Println("No variables configured")
 		return nil
 	}
 
@@ -145,9 +146,9 @@ func listVars() error {
 	}
 	sort.Strings(keys)
 
-	fmt.Println("Variables:")
+	ui.Header.Println("Variables:")
 	for _, key := range keys {
-		fmt.Printf("  %s=%s\n", key, cfg.Vars[key])
+		ui.Info.Printf("  %s=%s\n", key, cfg.Vars[key])
 	}
 	return nil
 }

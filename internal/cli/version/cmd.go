@@ -1,10 +1,9 @@
 package version
 
 import (
-	"fmt"
 	"github.com/rishiyaduwanshi/boiler/internal/config"
+	"github.com/rishiyaduwanshi/boiler/internal/ui"
 	"github.com/rishiyaduwanshi/boiler/internal/utils"
-
 	"github.com/rishiyaduwanshi/boiler/pkg/version"
 	"github.com/spf13/cobra"
 )
@@ -22,7 +21,7 @@ Shows current version, build date, and Go version used.`,
   # Short form
   bl v`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println(version.Info())
+		ui.Info.Println(version.Info())
 	},
 }
 

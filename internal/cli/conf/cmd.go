@@ -2,11 +2,12 @@ package conf
 
 import (
 	"fmt"
-	"github.com/rishiyaduwanshi/boiler/internal/utils"
 	"os"
 	"os/exec"
 
 	"github.com/rishiyaduwanshi/boiler/internal/config"
+	"github.com/rishiyaduwanshi/boiler/internal/ui"
+	"github.com/rishiyaduwanshi/boiler/internal/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -44,20 +45,20 @@ Configuration includes paths, preferences, and behavior settings.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if confSetRegistry != "" {
 			if err := setRegistry(confSetRegistry); err != nil {
-				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+				ui.Error.Fprintf(os.Stderr, "Error: %v\n", err)
 				os.Exit(1)
 			}
 			return
 		}
 		if confEdit != "" {
 			if err := editConfig(); err != nil {
-				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+				ui.Error.Fprintf(os.Stderr, "Error: %v\n", err)
 				os.Exit(1)
 			}
 			return
 		}
 		if confReset {
-			fmt.Fprintf(os.Stderr, "Error: reset is not supported in the new architecture yet\n")
+			ui.Error.Fprintf(os.Stderr, "Error: reset is not supported in the new architecture yet\n")
 			os.Exit(1)
 			return
 		}
@@ -94,17 +95,17 @@ func getActiveConfigPath() (string, error) {
 func showConfig() {
 	configPath, err := getActiveConfigPath()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error getting config path: %v\n", err)
+		ui.Error.Fprintf(os.Stderr, "Error getting config path: %v\n", err)
 		return
 	}
 
 	data, err := os.ReadFile(configPath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error reading config: %v\n", err)
+		ui.Error.Fprintf(os.Stderr, "Error reading config: %v\n", err)
 		return
 	}
 
-	fmt.Printf("Config File: %s\n\n", configPath)
+	ui.Info.Printf("Config File: %s\n\n", ui.Path.Render(configPath))
 	fmt.Println(string(data))
 }
 
@@ -161,9 +162,9 @@ func setRegistry(registryURL string) error {
 	}
 
 	logger.Info(fmt.Sprintf("Registry changed from %s to %s", oldRegistry, registryURL))
-	fmt.Printf("✓ Registry updated\n")
-	fmt.Printf("  Old: %s\n", oldRegistry)
-	fmt.Printf("  New: %s\n", registryURL)
+	ui.Success.Printf("✓ Registry updated\n")
+	ui.Info.Printf("  Old: %s\n", oldRegistry)
+	ui.Info.Printf("  New: %s\n", registryURL)
 	return nil
 }
 

@@ -7,6 +7,7 @@ import (
 
 	"github.com/rishiyaduwanshi/boiler/internal/config"
 	"github.com/rishiyaduwanshi/boiler/internal/store"
+	"github.com/rishiyaduwanshi/boiler/internal/ui"
 	"github.com/rishiyaduwanshi/boiler/internal/utils"
 )
 
@@ -36,7 +37,7 @@ func AddSnippet(st *store.Store, name, destPath string, opts Options, cfg *confi
 		return err
 	}
 
-	fmt.Printf(utils.MsgSnippetAdded, name, destFile)
+	ui.Success.Printf(utils.MsgSnippetAdded, name, ui.Path.Render(destFile))
 	if logger != nil {
 		logger.Info(fmt.Sprintf("Snippet added: %s -> %s", name, destFile))
 	}
@@ -54,7 +55,7 @@ func ProcessSnippetFile(snippetPath, destFile string, cfg *config.Config) error 
 	// Prompt user for variable values if variables exist
 	varReplacements := make(map[string]string)
 	if len(meta.Variables) > 0 {
-		fmt.Println("Template variables found:")
+		ui.Header.Println("Template variables found:")
 		for varName, defaultValue := range meta.Variables {
 			// If value is provided via Env or Config, skip the prompt and use it silently
 			if val, ok, _ := utils.LookupVar(cfg.Vars, varName); ok && val != "" {
@@ -95,7 +96,7 @@ func AddStack(st *store.Store, name, destPath string, opts Options, logger *util
 		return err
 	}
 
-	fmt.Printf(utils.MsgStackAdded, name, finalDestPath)
+	ui.Success.Printf(utils.MsgStackAdded, name, ui.Path.Render(finalDestPath))
 	if logger != nil {
 		logger.Info(fmt.Sprintf("Stack added: %s -> %s", name, finalDestPath))
 	}

@@ -2,8 +2,10 @@ package remote
 
 import (
 	"fmt"
+
 	"github.com/rishiyaduwanshi/boiler/internal/config"
 	"github.com/rishiyaduwanshi/boiler/internal/store"
+	"github.com/rishiyaduwanshi/boiler/internal/ui"
 	"github.com/rishiyaduwanshi/boiler/internal/utils"
 )
 
@@ -24,7 +26,7 @@ func LoadRegistry(registryURL string, cfg *config.Config) (*RemoteStore, *store.
 		return nil, nil, fmt.Errorf("failed to initialize remote store: %w", err)
 	}
 
-	fmt.Println("🔄 Fetching remote registry...")
+	ui.Info.Println("🔄 Fetching remote registry...")
 	remoteStore, err := handler.LoadFromURL()
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to load remote registry: %w", err)

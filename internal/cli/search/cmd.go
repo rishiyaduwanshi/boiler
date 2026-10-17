@@ -2,11 +2,12 @@ package search
 
 import (
 	"fmt"
-	"github.com/rishiyaduwanshi/boiler/internal/config"
 	"os"
 	"strings"
 
+	"github.com/rishiyaduwanshi/boiler/internal/config"
 	"github.com/rishiyaduwanshi/boiler/internal/remote"
+	"github.com/rishiyaduwanshi/boiler/internal/ui"
 	"github.com/rishiyaduwanshi/boiler/internal/utils"
 	"github.com/spf13/cobra"
 )
@@ -48,13 +49,13 @@ Remote Search:
 	Run: func(cmd *cobra.Command, args []string) {
 		query, err := utils.ResolveInputToken(args[0], "query", cfg.Vars)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			ui.Error.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}
 		logger.Info(fmt.Sprintf("Searching for: %s", query))
 
 		if err := searchResources(query); err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			ui.Error.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}
 	},
@@ -86,9 +87,9 @@ func searchResources(query string) error {
 
 		if len(matches) > 0 {
 			foundAny = true
-			fmt.Println("\n📄 Snippets:")
+			ui.Header.Println("\n📄 Snippets:")
 			for _, name := range matches {
-				fmt.Printf("  • %s\n", name)
+				ui.Info.Printf("  • %s\n", name)
 			}
 		}
 	}
@@ -105,15 +106,15 @@ func searchResources(query string) error {
 
 		if len(matches) > 0 {
 			foundAny = true
-			fmt.Println("\n📦 Stacks:")
+			ui.Header.Println("\n📦 Stacks:")
 			for _, name := range matches {
-				fmt.Printf("  • %s\n", name)
+				ui.Info.Printf("  • %s\n", name)
 			}
 		}
 	}
 
 	if !foundAny {
-		fmt.Printf("No results found for '%s'\n", query)
+		ui.Muted.Printf("No results found for '%s'\n", query)
 	} else {
 		fmt.Println()
 	}
@@ -139,23 +140,23 @@ func searchRemoteResources(query string) error {
 	// Display snippets
 	if snippets, ok := results["snippets"]; ok && len(snippets) > 0 {
 		foundAny = true
-		fmt.Println("\n📄 Remote Snippets:")
+		ui.Header.Println("\n📄 Remote Snippets:")
 		for _, name := range snippets {
-			fmt.Printf("  • %s\n", name)
+			ui.Info.Printf("  • %s\n", name)
 		}
 	}
 
 	// Display stacks
 	if stacks, ok := results["stacks"]; ok && len(stacks) > 0 {
 		foundAny = true
-		fmt.Println("\n📦 Remote Stacks:")
+		ui.Header.Println("\n📦 Remote Stacks:")
 		for _, name := range stacks {
-			fmt.Printf("  • %s\n", name)
+			ui.Info.Printf("  • %s\n", name)
 		}
 	}
 
 	if !foundAny {
-		fmt.Printf("No remote results found for '%s'\n", query)
+		ui.Muted.Printf("No remote results found for '%s'\n", query)
 	} else {
 		fmt.Println()
 	}

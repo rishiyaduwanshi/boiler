@@ -3,12 +3,13 @@ package Cmd
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/rishiyaduwanshi/boiler/internal/config"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/rishiyaduwanshi/boiler/internal/config"
 	"github.com/rishiyaduwanshi/boiler/internal/models"
+	"github.com/rishiyaduwanshi/boiler/internal/ui"
 	"github.com/rishiyaduwanshi/boiler/internal/utils"
 	"github.com/spf13/cobra"
 )
@@ -55,7 +56,7 @@ Similar to 'npm init', this helps you prepare projects for storing.`,
   bl store`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := initBoilerConfig(); err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			ui.Error.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}
 	},
@@ -140,10 +141,10 @@ func createStackConfig(path string) error {
 		return fmt.Errorf("failed to write config: %w", err)
 	}
 
-	fmt.Println("✓ Created boiler.stack.json")
-	fmt.Println("\nNext steps:")
-	fmt.Println("  1. Edit boiler.stack.json to customize settings")
-	fmt.Println("  2. Run 'bl store' to save this stack")
+	ui.Success.Println("✓ Created boiler.stack.json")
+	ui.Header.Println("\nNext steps:")
+	ui.Info.Println("  1. Edit boiler.stack.json to customize settings")
+	ui.Info.Println("  2. Run 'bl store' to save this stack")
 
 	return nil
 }
@@ -202,11 +203,11 @@ func createSnippetConfig(path string) error {
 		return err
 	}
 
-	fmt.Printf("✓ Created %s\n", fileName)
-	fmt.Println("\nNext steps:")
-	fmt.Println("  1. Edit the file and add your code")
-	fmt.Println("  2. Add template variables: // __var bl__VAR_NAME = DefaultValue")
-	fmt.Println("  3. Run 'bl store " + fileName + "' to save the snippet")
+	ui.Success.Printf("✓ Created %s\n", fileName)
+	ui.Header.Println("\nNext steps:")
+	ui.Info.Println("  1. Edit the file and add your code")
+	ui.Info.Println("  2. Add template variables: // __var bl__VAR_NAME = DefaultValue")
+	ui.Info.Println("  3. Run 'bl store " + fileName + "' to save the snippet")
 
 	return nil
 }
@@ -262,10 +263,10 @@ func createLocalConfig() error {
 		return fmt.Errorf("failed to write config: %w", err)
 	}
 
-	fmt.Printf("✓ Created %s\n", filepath.Base(configPath))
-	fmt.Println("\nNext steps:")
-	fmt.Println("  1. Edit this file to add project-specific aliases and default variables")
-	fmt.Println("  2. Run 'bl conf' to see the combined active configuration")
+	ui.Success.Printf("✓ Created %s\n", filepath.Base(configPath))
+	ui.Header.Println("\nNext steps:")
+	ui.Info.Println("  1. Edit this file to add project-specific aliases and default variables")
+	ui.Info.Println("  2. Run 'bl conf' to see the combined active configuration")
 
 	return nil
 }

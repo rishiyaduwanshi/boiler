@@ -2,11 +2,12 @@ package unalias
 
 import (
 	"fmt"
-	aliascmd "github.com/rishiyaduwanshi/boiler/internal/cli/alias"
-	"github.com/rishiyaduwanshi/boiler/internal/config"
-	"github.com/rishiyaduwanshi/boiler/internal/utils"
 	"os"
 
+	aliascmd "github.com/rishiyaduwanshi/boiler/internal/cli/alias"
+	"github.com/rishiyaduwanshi/boiler/internal/config"
+	"github.com/rishiyaduwanshi/boiler/internal/ui"
+	"github.com/rishiyaduwanshi/boiler/internal/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -21,7 +22,7 @@ Examples:
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := unsetAlias(args[0]); err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			ui.Error.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}
 	},
@@ -50,7 +51,7 @@ func unsetAlias(rawName string) error {
 	}
 
 	logger.Info(fmt.Sprintf("Alias removed: %s", name))
-	fmt.Printf("✓ Alias '%s' removed\n", name)
+	ui.Success.Printf("✓ Alias '%s' removed\n", name)
 	return nil
 }
 

@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/rishiyaduwanshi/boiler/internal/ui"
 )
 
 type Logger struct {
@@ -84,7 +86,16 @@ func (l *Logger) Log(level LogLevel, message string) error {
 	}
 
 	if l.verbose || level == LogLevelError || level == LogLevelWarn {
-		fmt.Print(logMessage)
+		switch level {
+		case LogLevelError:
+			ui.Error.Printf("%s", logMessage)
+		case LogLevelWarn:
+			ui.Warning.Printf("%s", logMessage)
+		case LogLevelDebug:
+			ui.Muted.Printf("%s", logMessage)
+		default:
+			ui.Info.Printf("%s", logMessage)
+		}
 	}
 
 	return nil

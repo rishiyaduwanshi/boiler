@@ -1,11 +1,11 @@
 package use
 
 import (
-	"fmt"
-	"github.com/rishiyaduwanshi/boiler/internal/config"
 	"os"
 
 	addcmd "github.com/rishiyaduwanshi/boiler/internal/cli/add"
+	"github.com/rishiyaduwanshi/boiler/internal/config"
+	"github.com/rishiyaduwanshi/boiler/internal/ui"
 	"github.com/rishiyaduwanshi/boiler/internal/utils"
 	"github.com/spf13/cobra"
 )
@@ -57,7 +57,7 @@ Stack placement:
 	Run: func(cmd *cobra.Command, args []string) {
 		resource, err := utils.ResolveInputToken(args[0], "resource", cfg.Vars)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			ui.Error.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}
 
@@ -65,7 +65,7 @@ Stack placement:
 		if len(args) == 2 {
 			positionalDest, err = utils.ResolveInputToken(args[1], "destination", cfg.Vars)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+				ui.Error.Fprintf(os.Stderr, "Error: %v\n", err)
 				os.Exit(1)
 			}
 		}
@@ -82,7 +82,7 @@ Stack placement:
 		// (validateStackDestination) before any download, so --force is not
 		// required to discover an existing path. See issue #61.
 		if err := addcmd.AddResource(resource, addcmd.ResolveDestination(positionalDest), true, true, opts, cfg, logger); err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			ui.Error.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}
 	},

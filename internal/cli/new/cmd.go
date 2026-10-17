@@ -10,6 +10,7 @@ import (
 	"github.com/rishiyaduwanshi/boiler/internal/config"
 	"github.com/rishiyaduwanshi/boiler/internal/constants"
 	"github.com/rishiyaduwanshi/boiler/internal/engine"
+	"github.com/rishiyaduwanshi/boiler/internal/ui"
 	"github.com/rishiyaduwanshi/boiler/internal/utils"
 	"github.com/spf13/cobra"
 )
@@ -197,7 +198,7 @@ Script resolution is scope-aware:
 		}
 		defer func() {
 			if restoreErr := os.Chdir(originalDir); restoreErr != nil {
-				fmt.Fprintf(os.Stderr, "warning: failed to restore working directory to %q: %v\n", originalDir, restoreErr)
+				ui.Warning.Fprintf(os.Stderr, "warning: failed to restore working directory to %q: %v\n", originalDir, restoreErr)
 			}
 		}()
 

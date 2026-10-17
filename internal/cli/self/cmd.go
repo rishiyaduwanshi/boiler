@@ -8,7 +8,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/rishiyaduwanshi/boiler/internal/config"
 	"io"
 	"os"
 	"os/exec"
@@ -17,6 +16,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/rishiyaduwanshi/boiler/internal/config"
+	"github.com/rishiyaduwanshi/boiler/internal/ui"
 	"github.com/rishiyaduwanshi/boiler/internal/utils"
 	"github.com/rishiyaduwanshi/boiler/pkg/version"
 	"github.com/spf13/cobra"
@@ -58,7 +59,7 @@ Windows System Environment Variables).`,
   bl self uninstall`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := runSelfUninstall(); err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			ui.Error.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}
 	},
@@ -75,7 +76,7 @@ and replaces the current binary. No scripts are piped to shell.`,
   bl self update`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := runSelfUpdate(); err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			ui.Error.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}
 	},
@@ -91,7 +92,7 @@ func runSelfUninstall() error {
 		return fmt.Errorf("failed to resolve binary path: %w", err)
 	}
 
-	fmt.Printf("This will permanently remove: %s\n", exePath)
+	ui.Warning.Printf("This will permanently remove: %s\n", ui.Path.Render(exePath))
 	if !utils.ConfirmAction("Continue? (y/N): ") {
 		return fmt.Errorf("cancelled")
 	}
@@ -113,16 +114,16 @@ func runSelfUninstall() error {
 		}
 	}
 
-	fmt.Println("✓ Boiler binary removed")
+	ui.Success.Println("✓ Boiler binary removed")
 	fmt.Println()
-	fmt.Println("To finish cleaning up, remove the PATH entry added by the installer:")
-	fmt.Println("  Linux/macOS: remove the 'export PATH' line from ~/.bashrc, ~/.zshrc, or ~/.config/fish/config.fish")
-	fmt.Println("  Windows:     remove the Boiler directory from your user PATH in System Environment Variables")
+	ui.Info.Println("To finish cleaning up, remove the PATH entry added by the installer:")
+	ui.Info.Println("  Linux/macOS: remove the 'export PATH' line from ~/.bashrc, ~/.zshrc, or ~/.config/fish/config.fish")
+	ui.Info.Println("  Windows:     remove the Boiler directory from your user PATH in System Environment Variables")
 	return nil
 }
 
 func runSelfUpdate() error {
-	fmt.Println("Checking for updates...")
+	ui.Info.Println("Checking for updates...")
 
 	rel, err := fetchLatestRelease()
 	if err != nil {
@@ -134,11 +135,11 @@ func runSelfUpdate() error {
 	currentVer := strings.TrimPrefix(version.Version, "v")
 
 	if latestTag == currentVer {
-		fmt.Printf("Already on latest version (%s)\n", version.Version)
+		ui.Info.Printf("Already on latest version (%s)\n", version.Version)
 		return nil
 	}
 
-	fmt.Printf("Updating %s → %s\n", version.Version, rel.TagName)
+	ui.Info.Printf("Updating %s → %s\n", version.Version, rel.TagName)
 
 	// Determine asset name for current platform
 	target := releaseAssetName()
@@ -175,7 +176,7 @@ func runSelfUpdate() error {
 	tmpFile.Close()
 	defer os.Remove(tmpArchive)
 
-	fmt.Printf("Downloading %s...\n", target)
+	ui.Info.Printf("Downloading %s...\n", target)
 	if err := utils.HTTPDownloadToFile(assetURL, tmpArchive, 120*time.Second); err != nil {
 		return fmt.Errorf("download failed: %w", err)
 	}
@@ -189,9 +190,9 @@ func runSelfUpdate() error {
 		if actual != expectedHash {
 			return fmt.Errorf("checksum mismatch (expected %s, got %s) - aborting update", expectedHash, actual)
 		}
-		fmt.Println("✓ Checksum verified")
+		ui.Success.Println("✓ Checksum verified")
 	} else {
-		fmt.Println("⚠ Warning: checksums.txt not found, proceeding without verification")
+		ui.Warning.Println("⚠ Warning: checksums.txt not found, proceeding without verification")
 	}
 
 	// Find current executable path
@@ -210,7 +211,7 @@ func runSelfUpdate() error {
 		return fmt.Errorf("failed to replace binary: %w", err)
 	}
 
-	fmt.Printf("✓ Updated to %s - restart your terminal if needed\n", rel.TagName)
+	ui.Success.Printf("✓ Updated to %s - restart your terminal if needed\n", rel.TagName)
 	return nil
 }
 

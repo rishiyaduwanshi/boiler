@@ -8,16 +8,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/charmbracelet/lipgloss"
 	"github.com/rishiyaduwanshi/boiler/internal/config"
 	"github.com/rishiyaduwanshi/boiler/internal/models"
 	"github.com/rishiyaduwanshi/boiler/internal/store"
+	"github.com/rishiyaduwanshi/boiler/internal/ui"
 	"github.com/rishiyaduwanshi/boiler/internal/utils"
 	"github.com/spf13/cobra"
-)
-
-var (
-	warningStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("226")).Bold(true)
 )
 
 var Cmd = &cobra.Command{
@@ -85,14 +81,14 @@ The --force flag is only supported with --command.`,
 
 		if storeAsCommand {
 			if err := storeCommand(path); err != nil {
-				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+				ui.Error.Fprintf(os.Stderr, "Error: %v\n", err)
 				os.Exit(1)
 			}
 			return
 		}
 
 		if err := storeResource(path); err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			ui.Error.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}
 	},
@@ -225,7 +221,7 @@ func storeSnippet(st *store.Store, path, name string) error {
 		return fmt.Errorf("failed to update metadata: %w", err)
 	}
 
-	fmt.Printf("✓ Stored snippet '%s' at %s\n", fullName, destPath)
+	ui.Success.Printf(utils.MsgSnippetStored, fullName, ui.Path.Render(destPath))
 	logger.Info(fmt.Sprintf("Snippet stored: %s -> %s", path, destPath))
 	return nil
 }
@@ -295,7 +291,7 @@ func storeStack(st *store.Store, path, name string) error {
 		return fmt.Errorf("failed to update metadata: %w", err)
 	}
 
-	fmt.Printf("✓ Stored stack '%s' at %s\n", fullName, stackDir)
+	ui.Success.Printf(utils.MsgStackStored, fullName, ui.Path.Render(stackDir))
 	logger.Info(fmt.Sprintf("Stack stored: %s -> %s", path, stackDir))
 	return nil
 }
@@ -363,7 +359,7 @@ func storeCommand(path string) error {
 		return err
 	}
 
-	fmt.Printf("✓ Stored command '%s' at %s\n", filepath.Base(path), destPath)
+	ui.Success.Printf("✓ Stored command '%s' at %s\n", filepath.Base(path), ui.Path.Render(destPath))
 	logger.Info(fmt.Sprintf("Command stored: %s -> %s", path, destPath))
 	return nil
 }

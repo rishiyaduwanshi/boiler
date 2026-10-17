@@ -9,6 +9,7 @@ import (
 	"github.com/rishiyaduwanshi/boiler/internal/config"
 	"github.com/rishiyaduwanshi/boiler/internal/remote"
 	"github.com/rishiyaduwanshi/boiler/internal/store"
+	"github.com/rishiyaduwanshi/boiler/internal/ui"
 	"github.com/rishiyaduwanshi/boiler/internal/utils"
 )
 
@@ -78,7 +79,7 @@ func ResourceFromRemote(resource, destPath string, resourceType ResourceType, no
 				return err
 			}
 
-			fmt.Printf(utils.MsgSnippetAdded, resource, destFile)
+			ui.Success.Printf(utils.MsgSnippetAdded, resource, ui.Path.Render(destFile))
 			if logger != nil {
 				logger.Info(fmt.Sprintf("Remote snippet added (no-store): %s -> %s", resource, destFile))
 			}
@@ -140,7 +141,7 @@ func ResourceFromRemote(resource, destPath string, resourceType ResourceType, no
 			return err
 		}
 
-		fmt.Printf(utils.MsgStackAdded, resource, finalDestPath)
+		ui.Success.Printf(utils.MsgStackAdded, resource, ui.Path.Render(finalDestPath))
 		if logger != nil {
 			logger.Info(fmt.Sprintf("Remote stack added (no-store): %s -> %s", resource, finalDestPath))
 		}
@@ -172,7 +173,7 @@ func ResourceFromRemote(resource, destPath string, resourceType ResourceType, no
 		return err
 	}
 
-	fmt.Printf(utils.MsgStackAdded, resource, finalDestPath)
+	ui.Success.Printf(utils.MsgStackAdded, resource, ui.Path.Render(finalDestPath))
 	if logger != nil {
 		logger.Info(fmt.Sprintf("Remote stack added: %s -> %s", resource, finalDestPath))
 	}
@@ -219,7 +220,7 @@ func directRemoteResource(remotePath, destPath string, resourceType ResourceType
 		return fmt.Errorf("invalid remote path format: %s (expected: owner/repo, owner/repo:path, provider:owner/repo/path, or full URL)", remotePath)
 	}
 
-	fmt.Printf("📥 Fetching directly from %s/%s...\n", owner, repo)
+	ui.Info.Printf("📥 Fetching directly from %s/%s...\n", owner, repo)
 
 	isSnippet := shouldTreatDirectRemotePathAsSnippet(subPath, resourceType)
 
@@ -246,7 +247,7 @@ func directRemoteResource(remotePath, destPath string, resourceType ResourceType
 				return err
 			}
 
-			fmt.Printf(utils.MsgSnippetAdded, resourceName, destFile)
+			ui.Success.Printf(utils.MsgSnippetAdded, resourceName, ui.Path.Render(destFile))
 			if logger != nil {
 				logger.Info(fmt.Sprintf("Direct remote snippet added (no-store): %s -> %s", remotePath, destFile))
 			}
@@ -304,7 +305,7 @@ func directRemoteResource(remotePath, destPath string, resourceType ResourceType
 			return err
 		}
 
-		fmt.Printf(utils.MsgStackAdded, resourceName, finalDestPath)
+		ui.Success.Printf(utils.MsgStackAdded, resourceName, ui.Path.Render(finalDestPath))
 		if logger != nil {
 			logger.Info(fmt.Sprintf("Direct remote stack added (no-store): %s -> %s", remotePath, finalDestPath))
 		}
@@ -336,7 +337,7 @@ func directRemoteResource(remotePath, destPath string, resourceType ResourceType
 		return err
 	}
 
-	fmt.Printf(utils.MsgStackAdded, resourceName, finalDestPath)
+	ui.Success.Printf(utils.MsgStackAdded, resourceName, ui.Path.Render(finalDestPath))
 	if logger != nil {
 		logger.Info(fmt.Sprintf("Direct remote stack added: %s -> %s", remotePath, finalDestPath))
 	}
@@ -365,7 +366,7 @@ func directRemoteURLResource(remotePath, destPath string, resourceType ResourceT
 			if err := remote.FetchSnippet(remotePath, destFile); err != nil {
 				return err
 			}
-			fmt.Printf(utils.MsgSnippetAdded, resourceName, destFile)
+			ui.Success.Printf(utils.MsgSnippetAdded, resourceName, ui.Path.Render(destFile))
 			if logger != nil {
 				logger.Info(fmt.Sprintf("Direct URL snippet added (no-store): %s -> %s", remotePath, destFile))
 			}
@@ -417,7 +418,7 @@ func directRemoteURLResource(remotePath, destPath string, resourceType ResourceT
 			return err
 		}
 
-		fmt.Printf(utils.MsgStackAdded, resourceName, finalDestPath)
+		ui.Success.Printf(utils.MsgStackAdded, resourceName, ui.Path.Render(finalDestPath))
 		if logger != nil {
 			logger.Info(fmt.Sprintf("Direct URL stack added (no-store): %s -> %s", remotePath, finalDestPath))
 		}
@@ -446,7 +447,7 @@ func directRemoteURLResource(remotePath, destPath string, resourceType ResourceT
 		return err
 	}
 
-	fmt.Printf(utils.MsgStackAdded, resourceName, finalDestPath)
+	ui.Success.Printf(utils.MsgStackAdded, resourceName, ui.Path.Render(finalDestPath))
 	if logger != nil {
 		logger.Info(fmt.Sprintf("Direct remote stack added: %s -> %s", remotePath, finalDestPath))
 	}

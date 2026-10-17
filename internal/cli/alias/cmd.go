@@ -2,13 +2,14 @@ package alias
 
 import (
 	"fmt"
-	"github.com/rishiyaduwanshi/boiler/internal/utils"
 	"os"
 	"regexp"
 	"sort"
 	"strings"
 
 	"github.com/rishiyaduwanshi/boiler/internal/config"
+	"github.com/rishiyaduwanshi/boiler/internal/ui"
+	"github.com/rishiyaduwanshi/boiler/internal/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -65,7 +66,7 @@ bl alias templates='search --registry https://github.com/bl__org/boiler'
 		}
 
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			ui.Error.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}
 	},
@@ -170,7 +171,7 @@ func setAliasFromAssignment(assignment string) error {
 	}
 
 	logger.Info(fmt.Sprintf("Alias set: %s -> %s", name, target))
-	fmt.Printf("✓ Alias '%s' -> '%s' set\n", name, target)
+	ui.Success.Printf("✓ Alias '%s' -> '%s' set\n", name, target)
 	return nil
 }
 
@@ -194,7 +195,7 @@ func getAliasByName(rawName string) error {
 func listAliases() error {
 	EnsureConfigAliases()
 	if len(cfg.Aliases) == 0 {
-		fmt.Println("No aliases configured")
+		ui.Muted.Println("No aliases configured")
 		return nil
 	}
 
@@ -204,9 +205,9 @@ func listAliases() error {
 	}
 	sort.Strings(keys)
 
-	fmt.Println("Aliases:")
+	ui.Header.Println("Aliases:")
 	for _, key := range keys {
-		fmt.Printf("  %s=%s\n", key, cfg.Aliases[key])
+		ui.Info.Printf("  %s=%s\n", key, cfg.Aliases[key])
 	}
 	return nil
 }
@@ -214,6 +215,17 @@ func listAliases() error {
 func ExpandFirstCommandAlias(args []string) []string {
 	if len(args) == 0 || cfg == nil {
 		return args
+	}
+
+	// Global output flags may appear before the command token. Keep them out of
+	// the alias input so they do not prevent expansion of the actual command.
+	leadingOutputFlags := 0
+	for leadingOutputFlags < len(args) && isLeadingOutputFlag(args[leadingOutputFlags]) {
+		leadingOutputFlags++
+	}
+	if leadingOutputFlags > 0 {
+		expanded := ExpandFirstCommandAlias(args[leadingOutputFlags:])
+		return append(append([]string(nil), args[:leadingOutputFlags]...), expanded...)
 	}
 
 	EnsureConfigAliases()
@@ -297,6 +309,10 @@ func ExpandFirstCommandAlias(args []string) []string {
 	}
 
 	return expanded
+}
+
+func isLeadingOutputFlag(arg string) bool {
+	return arg == "--no-color" || strings.HasPrefix(arg, "--no-color=")
 }
 
 var (

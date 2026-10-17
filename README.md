@@ -173,6 +173,23 @@ bl version                   # Show version
 
 ---
 
+### Terminal output
+
+Boiler uses consistent colors for errors, warnings, successes and paths, with
+highlighted section headers. Snippet and stack downloads show a spinner on
+interactive terminals; redirected output remains plain text without animation.
+
+Disable colors and animated progress with the global `--no-color` flag or a
+non-empty `NO_COLOR` environment variable:
+
+```sh
+bl --no-color ls
+NO_COLOR=1 bl add owner/repo --remote
+```
+
+Colors and animation are also disabled on unsupported terminals (including
+`TERM=dumb`). Log files always remain plain text.
+
 ## Project-Local Store
 
 For project-specific templates that shouldn't be in your global store:

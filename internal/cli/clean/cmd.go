@@ -2,10 +2,11 @@ package clean
 
 import (
 	"fmt"
-	"github.com/rishiyaduwanshi/boiler/internal/config"
 	"os"
 
+	"github.com/rishiyaduwanshi/boiler/internal/config"
 	"github.com/rishiyaduwanshi/boiler/internal/store"
+	"github.com/rishiyaduwanshi/boiler/internal/ui"
 	"github.com/rishiyaduwanshi/boiler/internal/utils"
 	"github.com/spf13/cobra"
 )
@@ -41,7 +42,7 @@ Version-specific deletion is supported.`,
 			resource := args[0]
 			logger.Info(fmt.Sprintf("Cleaning resource: %s", resource))
 			if err := cleanResource(resource); err != nil {
-				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+				ui.Error.Fprintf(os.Stderr, "Error: %v\n", err)
 				os.Exit(1)
 			}
 			return
@@ -49,7 +50,7 @@ Version-specific deletion is supported.`,
 
 		if cleanAll {
 			if err := cleanAllResources(); err != nil {
-				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+				ui.Error.Fprintf(os.Stderr, "Error: %v\n", err)
 				os.Exit(1)
 			}
 			return
@@ -57,7 +58,7 @@ Version-specific deletion is supported.`,
 
 		if cleanSnippets {
 			if err := cleanAllSnippets(); err != nil {
-				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+				ui.Error.Fprintf(os.Stderr, "Error: %v\n", err)
 				os.Exit(1)
 			}
 			return
@@ -65,14 +66,14 @@ Version-specific deletion is supported.`,
 
 		if cleanStacks {
 			if err := cleanAllStacks(); err != nil {
-				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+				ui.Error.Fprintf(os.Stderr, "Error: %v\n", err)
 				os.Exit(1)
 			}
 			return
 		}
 
 		if err := interactiveClean(); err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			ui.Error.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}
 	},
@@ -118,7 +119,7 @@ func cleanSnippet(st *store.Store, name string) error {
 	}
 
 	if !utils.ConfirmAction(fmt.Sprintf(utils.MsgPromptConfirmRemove, "snippet", name)) {
-		fmt.Println(utils.MsgCancelled)
+		ui.Muted.Println(utils.MsgCancelled)
 		return nil
 	}
 
@@ -132,7 +133,7 @@ func cleanSnippet(st *store.Store, name string) error {
 		return fmt.Errorf("failed to update metadata: %w", err)
 	}
 
-	fmt.Printf(utils.MsgSnippetRemoved, name)
+	ui.Success.Printf(utils.MsgSnippetRemoved, name)
 	logger.Info(fmt.Sprintf("Snippet removed: %s", name))
 	return nil
 }
@@ -144,7 +145,7 @@ func cleanStack(st *store.Store, name string) error {
 	}
 
 	if !utils.ConfirmAction(fmt.Sprintf(utils.MsgPromptConfirmRemove, "stack", name)) {
-		fmt.Println(utils.MsgCancelled)
+		ui.Muted.Println(utils.MsgCancelled)
 		return nil
 	}
 
@@ -158,7 +159,7 @@ func cleanStack(st *store.Store, name string) error {
 		return fmt.Errorf("failed to update metadata: %w", err)
 	}
 
-	fmt.Printf(utils.MsgStackRemoved, name)
+	ui.Success.Printf(utils.MsgStackRemoved, name)
 	logger.Info(fmt.Sprintf("Stack removed: %s", name))
 	return nil
 }
@@ -169,9 +170,9 @@ func cleanAllResources() error {
 		return err
 	}
 
-	fmt.Println(utils.MsgPromptConfirmCleanAll)
+	ui.Warning.Println(utils.MsgPromptConfirmCleanAll)
 	if !utils.ConfirmAction("Are you sure? (y/N): ") {
-		fmt.Println(utils.MsgCancelled)
+		ui.Muted.Println(utils.MsgCancelled)
 		return nil
 	}
 
@@ -201,7 +202,7 @@ func cleanAllResources() error {
 		}
 	}
 
-	fmt.Printf("✓ Removed %d snippets and %d stacks\n", len(snippets), len(stacks))
+	ui.Success.Printf("✓ Removed %d snippets and %d stacks\n", len(snippets), len(stacks))
 	logger.Info("All resources cleaned")
 	return nil
 }
@@ -214,12 +215,12 @@ func cleanAllSnippets() error {
 
 	snippets := st.ListSnippets()
 	if len(snippets) == 0 {
-		fmt.Println(utils.MsgNoSnippets)
+		ui.Muted.Println(utils.MsgNoSnippets)
 		return nil
 	}
 
 	if !utils.ConfirmAction(fmt.Sprintf("Remove %d snippets? (y/N): ", len(snippets))) {
-		fmt.Println(utils.MsgCancelled)
+		ui.Muted.Println(utils.MsgCancelled)
 		return nil
 	}
 
@@ -235,7 +236,7 @@ func cleanAllSnippets() error {
 		}
 	}
 
-	fmt.Printf("✓ Removed %d snippets\n", len(snippets))
+	ui.Success.Printf("✓ Removed %d snippets\n", len(snippets))
 	logger.Info(fmt.Sprintf("Cleaned %d snippets", len(snippets)))
 	return nil
 }
@@ -248,12 +249,12 @@ func cleanAllStacks() error {
 
 	stacks := st.ListStacks()
 	if len(stacks) == 0 {
-		fmt.Println(utils.MsgNoStacks)
+		ui.Muted.Println(utils.MsgNoStacks)
 		return nil
 	}
 
 	if !utils.ConfirmAction(fmt.Sprintf("Remove %d stacks? (y/N): ", len(stacks))) {
-		fmt.Println(utils.MsgCancelled)
+		ui.Muted.Println(utils.MsgCancelled)
 		return nil
 	}
 
@@ -269,17 +270,17 @@ func cleanAllStacks() error {
 		}
 	}
 
-	fmt.Printf("✓ Removed %d stacks\n", len(stacks))
+	ui.Success.Printf("✓ Removed %d stacks\n", len(stacks))
 	logger.Info(fmt.Sprintf("Cleaned %d stacks", len(stacks)))
 	return nil
 }
 
 func interactiveClean() error {
-	fmt.Println("\nSelect action:")
-	fmt.Println("  k - clean all stacks")
-	fmt.Println("  n - clean all snippets")
-	fmt.Println("  a - clean all resources")
-	fmt.Println("  q - quit")
+	ui.Header.Println("\nSelect action:")
+	ui.Info.Println("  k - clean all stacks")
+	ui.Info.Println("  n - clean all snippets")
+	ui.Info.Println("  a - clean all resources")
+	ui.Info.Println("  q - quit")
 
 	choice, err := utils.Prompt("\nChoice: ")
 	if err != nil {
@@ -294,10 +295,10 @@ func interactiveClean() error {
 	case "a", "A":
 		return cleanAllResources()
 	case "q", "Q":
-		fmt.Println(utils.MsgCancelled)
+		ui.Muted.Println(utils.MsgCancelled)
 		return nil
 	default:
-		fmt.Fprintf(os.Stderr, "invalid choice %q - valid options: k (stacks), n (snippets), a (all), q (quit)\n", choice)
+		ui.Error.Fprintf(os.Stderr, "invalid choice %q - valid options: k (stacks), n (snippets), a (all), q (quit)\n", choice)
 		return fmt.Errorf("invalid choice %q", choice)
 	}
 }

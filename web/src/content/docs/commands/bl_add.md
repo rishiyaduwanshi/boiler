@@ -142,13 +142,11 @@ bl add [resource] [destination] [flags]
   -n, --snippet           Treat resource as snippet (overrides auto-detection)
       --spread            Spread stack contents directly into destination
   -k, --stack             Treat resource as stack (overrides auto-detection)
-```
 
-### Options inherited from parent commands
-
-```
-      --global    Force global scope for this command
-      --local     Force local scope for this command
-  -V, --verbose   Enable verbose debug output
+# global flags (inherited)
+      --global     Force global scope for this command
+      --local      Force local scope for this command
+      --no-color   Disable colors and animated progress (also honors NO_COLOR)
+  -V, --verbose    Enable verbose debug output
 ```
 

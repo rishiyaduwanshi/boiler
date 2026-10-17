@@ -8,6 +8,7 @@ import (
 
 	"github.com/rishiyaduwanshi/boiler/internal/constants"
 	"github.com/rishiyaduwanshi/boiler/internal/store"
+	"github.com/rishiyaduwanshi/boiler/internal/ui"
 )
 
 // DefaultIgnorePatterns are common paths to skip when copying stacks.
@@ -67,9 +68,9 @@ func PickFromList(label string, items []string) (string, error) {
 	if len(items) == 1 {
 		return items[0], nil
 	}
-	fmt.Printf("Multiple versions found for '%s':\n", label)
+	ui.Header.Printf("Multiple versions found for '%s':\n", label)
 	for i, name := range items {
-		fmt.Printf("  %d. %s\n", i+1, name)
+		ui.Info.Printf("  %d. %s\n", i+1, name)
 	}
 	choice, err := Prompt(fmt.Sprintf("Enter version number (1-%d): ", len(items)))
 	if err != nil {

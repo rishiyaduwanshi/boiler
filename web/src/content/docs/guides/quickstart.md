@@ -106,6 +106,26 @@ bl self update               # Update Boiler to the latest version
 
 ---
 
+## Getting help
+
+Use `bl --help` to browse commands, or `bl ls --help` (also `bl ls -h`)
+for a command's usage, aliases, examples, and flags. Terminal help highlights
+section headings and command names, with muted example comments. Each command's
+usage forms are shown once each; aliases are listed separately.
+
+Help automatically uses plain text when redirected to a file or pipe. To disable
+colors and animated progress in a terminal, pass `--no-color` or set `NO_COLOR`
+to a non-empty value:
+
+```bash
+bl ls --help --no-color
+NO_COLOR=1 bl --help
+```
+
+The website's command reference is generated from the same command definitions.
+It presents usage and examples in code blocks and command-specific and inherited
+global flags together under **Options**, without terminal escape sequences.
+
 ## Next Steps
 
 - [Use Cases](/guides/usecases/) - Real-world workflows and examples

@@ -6,27 +6,30 @@ import (
 
 	"github.com/rishiyaduwanshi/boiler/internal/cli"
 	"github.com/rishiyaduwanshi/boiler/internal/config"
+	"github.com/rishiyaduwanshi/boiler/internal/ui"
 	"github.com/rishiyaduwanshi/boiler/internal/utils"
 )
 
 func main() {
+	cli.ConfigureOutput(os.Args[1:])
+
 	// Load configuration manager
 	manager, err := config.Load()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error loading config: %v\n", err)
+		ui.Error.Fprintf(os.Stderr, "Error loading config: %v\n", err)
 		os.Exit(1)
 	}
 
 	// Initialize directories
 	if err := manager.Runtime.InitializeDirs(); err != nil {
-		fmt.Fprintf(os.Stderr, "Error initializing directories: %v\n", err)
+		ui.Error.Fprintf(os.Stderr, "Error initializing directories: %v\n", err)
 		os.Exit(1)
 	}
 
 	// Create logger
 	logger, err := utils.NewLogger(manager.Runtime.Paths.Logs, false)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error creating logger: %v\n", err)
+		ui.Error.Fprintf(os.Stderr, "Error creating logger: %v\n", err)
 		os.Exit(1)
 	}
 

@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/rishiyaduwanshi/boiler/internal/config"
+	"github.com/rishiyaduwanshi/boiler/internal/ui"
 	"github.com/rishiyaduwanshi/boiler/internal/utils"
 	"github.com/spf13/cobra"
 )
@@ -154,7 +155,7 @@ Supported remote formats:
 
 			resource, err := utils.ResolveInputToken(args[0], "resource", cfg.Vars)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+				ui.Error.Fprintf(os.Stderr, "Error: %v\n", err)
 				os.Exit(1)
 			}
 
@@ -162,7 +163,7 @@ Supported remote formats:
 			if len(args) == 2 {
 				positionalDest, err = utils.ResolveInputToken(args[1], "destination", cfg.Vars)
 				if err != nil {
-					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+					ui.Error.Fprintf(os.Stderr, "Error: %v\n", err)
 					os.Exit(1)
 				}
 			}
@@ -171,7 +172,7 @@ Supported remote formats:
 			logger.Info(fmt.Sprintf("Adding resource: %s -> %s", resource, destPath))
 
 			if addNoStore && !addRemote {
-				fmt.Fprintf(os.Stderr, "Error: --no-store requires --remote\n")
+				ui.Error.Fprintf(os.Stderr, "Error: --no-store requires --remote\n")
 				os.Exit(1)
 			}
 
@@ -185,7 +186,7 @@ Supported remote formats:
 			}
 
 			if err := AddResource(resource, destPath, addRemote, addNoStore, opts, cfg, logger); err != nil {
-				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+				ui.Error.Fprintf(os.Stderr, "Error: %v\n", err)
 				os.Exit(1)
 			}
 		},

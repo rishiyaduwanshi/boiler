@@ -16,6 +16,7 @@ import (
 
 	"github.com/rishiyaduwanshi/boiler/internal/constants"
 	"github.com/rishiyaduwanshi/boiler/internal/store"
+	"github.com/rishiyaduwanshi/boiler/internal/ui"
 	"github.com/rishiyaduwanshi/boiler/internal/utils"
 )
 
@@ -50,7 +51,7 @@ func FetchSnippet(remotePath string, destPath string) error {
 		return fmt.Errorf("invalid remote path format: %s", remotePath)
 	}
 
-	fmt.Printf("📥 Downloading snippet...\n")
+	ui.Info.Printf("📥 Downloading snippet...\n")
 
 	data, err := downloadFile(fileURL)
 	if err != nil {
@@ -65,7 +66,7 @@ func FetchSnippet(remotePath string, destPath string) error {
 		return fmt.Errorf("failed to write snippet: %w", err)
 	}
 
-	fmt.Printf("✓ Downloaded successfully\n")
+	ui.Success.Printf("✓ Downloaded successfully\n")
 	return nil
 }
 
@@ -121,7 +122,7 @@ func FetchStack(remotePath string, destPath string) error {
 				return fmt.Errorf("failed to scan fetched stack for Git LFS pointers: %w", scanErr)
 			}
 			if hasPointers {
-				fmt.Println(utils.MsgGitLFSFallback)
+				ui.Warning.Println(utils.MsgGitLFSFallback)
 				tempDir, tempErr := os.MkdirTemp("", "boiler-stack-clone-*")
 				if tempErr != nil {
 					return fmt.Errorf("failed to create temp directory: %w", tempErr)
@@ -132,7 +133,7 @@ func FetchStack(remotePath string, destPath string) error {
 					return fmt.Errorf("failed to fetch Git LFS stack: %w", cloneErr)
 				}
 			}
-			fmt.Printf("✓ Stack downloaded successfully\n")
+			ui.Success.Printf("✓ Stack downloaded successfully\n")
 			return nil
 		} else {
 			debugf("provider subtree fetch failed, falling back to archive: %v", err)
@@ -153,14 +154,14 @@ func FetchStack(remotePath string, destPath string) error {
 		archiveURL = remotePath
 		// Detect format from URL extension so both .zip and .tar.gz work.
 		archiveExt = archiveFormatFromURL(archiveURL)
-		fmt.Printf("📥 Downloading stack...\n")
+		ui.Info.Printf("📥 Downloading stack...\n")
 	} else {
 		if subPath != "." {
 			debugf("falling back to full archive for subpath fetch path=%s", subPath)
 		}
 		archiveURL = p.ArchiveURL(owner, repo, ref, subPath)
 		archiveExt = p.ArchiveFormat()
-		fmt.Printf("📥 Downloading stack from %s (%s/%s@%s)...\n", p.Name(), owner, repo, ref)
+		ui.Info.Printf("📥 Downloading stack from %s (%s/%s@%s)...\n", p.Name(), owner, repo, ref)
 	}
 
 	// Create temp directory
@@ -221,11 +222,11 @@ func FetchStack(remotePath string, destPath string) error {
 		return fmt.Errorf("failed to scan extracted stack for Git LFS pointers: %w", err)
 	}
 	if hasPointers {
-		fmt.Println(utils.MsgGitLFSFallback)
+		ui.Warning.Println(utils.MsgGitLFSFallback)
 		if err := fetchStackWithGitClone(p, owner, repo, ref, subPath, tempDir, destPath); err != nil {
 			return fmt.Errorf("failed to fetch Git LFS stack: %w", err)
 		}
-		fmt.Printf("✓ Stack downloaded successfully\n")
+		ui.Success.Printf("✓ Stack downloaded successfully\n")
 		return nil
 	}
 
@@ -233,20 +234,20 @@ func FetchStack(remotePath string, destPath string) error {
 		return fmt.Errorf("failed to copy stack: %w", err)
 	}
 
-	fmt.Printf("✓ Stack downloaded successfully\n")
+	ui.Success.Printf("✓ Stack downloaded successfully\n")
 	return nil
 }
 
 func fetchProviderSubPath(p Provider, owner, repo, ref, subPath, destPath string) error {
 	switch provider := p.(type) {
 	case githubProvider:
-		fmt.Printf("📥 Fetching GitHub subtree %s/%s@%s:%s...\n", owner, repo, ref, subPath)
+		ui.Info.Printf("📥 Fetching GitHub subtree %s/%s@%s:%s...\n", owner, repo, ref, subPath)
 		return fetchGitHubSubPath(owner, repo, ref, subPath, destPath)
 	case gitlabProvider:
-		fmt.Printf("📥 Fetching GitLab subtree %s/%s@%s:%s...\n", owner, repo, ref, subPath)
+		ui.Info.Printf("📥 Fetching GitLab subtree %s/%s@%s:%s...\n", owner, repo, ref, subPath)
 		return fetchGitLabSubPath(provider.host, owner, repo, ref, subPath, destPath)
 	case bitbucketProvider:
-		fmt.Printf("📥 Fetching Bitbucket subtree %s/%s@%s:%s...\n", owner, repo, ref, subPath)
+		ui.Info.Printf("📥 Fetching Bitbucket subtree %s/%s@%s:%s...\n", owner, repo, ref, subPath)
 		return fetchBitbucketSubPath(owner, repo, ref, subPath, destPath)
 	default:
 		return fmt.Errorf("provider %s does not support subtree fetch", p.Name())
@@ -468,6 +469,9 @@ func authHeaderForURL(rawURL string) (key, value string) {
 
 // downloadFile downloads a file from URL and returns its content
 func downloadFile(url string) ([]byte, error) {
+	stop := ui.StartSpinner(os.Stderr, "Downloading...")
+	defer stop()
+
 	var data []byte
 	err := withHTTPGet(url, 30*time.Second, func(r io.Reader) error {
 		body, err := io.ReadAll(r)
@@ -491,6 +495,9 @@ func downloadToFile(url, path string) error {
 		return fmt.Errorf("failed to create file: %w", err)
 	}
 	defer out.Close()
+
+	stop := ui.StartSpinner(os.Stderr, "Downloading stack...")
+	defer stop()
 
 	return withHTTPGet(url, 60*time.Second, func(r io.Reader) error {
 		if _, err := io.Copy(out, r); err != nil {

@@ -7,10 +7,12 @@ import (
 	"io"
 	"os"
 	"strings"
+
+	"github.com/rishiyaduwanshi/boiler/internal/ui"
 )
 
 func Prompt(message string) (string, error) {
-	fmt.Print(message)
+	ui.Info.Printf("%s", message)
 	reader := bufio.NewReader(os.Stdin)
 	input, err := reader.ReadString('\n')
 	if err != nil && !errors.Is(err, io.EOF) {

@@ -2,11 +2,12 @@ package info
 
 import (
 	"fmt"
-	"github.com/rishiyaduwanshi/boiler/internal/config"
 	"os"
 	"path/filepath"
 
+	"github.com/rishiyaduwanshi/boiler/internal/config"
 	"github.com/rishiyaduwanshi/boiler/internal/store"
+	"github.com/rishiyaduwanshi/boiler/internal/ui"
 	"github.com/rishiyaduwanshi/boiler/internal/utils"
 	"github.com/spf13/cobra"
 )
@@ -36,7 +37,7 @@ Shows:
 		logger.Info(fmt.Sprintf("Getting info for: %s", resource))
 
 		if err := showInfo(resource); err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			ui.Error.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}
 	},
@@ -71,11 +72,11 @@ func showSnippetInfo(st *store.Store, name string) error {
 		return fmt.Errorf("failed to get file info: %w", err)
 	}
 
-	fmt.Printf("📄 Snippet: %s\n", name)
-	fmt.Printf("   Path:     %s\n", path)
-	fmt.Printf("   Size:     %d bytes\n", info.Size())
-	fmt.Printf("   Modified: %s\n", info.ModTime().Format("2006-01-02 15:04:05"))
-	fmt.Printf("   Type:     %s\n", filepath.Ext(path))
+	ui.Header.Printf("📄 Snippet: %s\n", name)
+	ui.Info.Printf("   Path:     %s\n", ui.Path.Render(path))
+	ui.Info.Printf("   Size:     %d bytes\n", info.Size())
+	ui.Info.Printf("   Modified: %s\n", info.ModTime().Format("2006-01-02 15:04:05"))
+	ui.Info.Printf("   Type:     %s\n", filepath.Ext(path))
 
 	return nil
 }
@@ -112,11 +113,11 @@ func showStackInfo(st *store.Store, name string) error {
 		return fmt.Errorf("failed to read stack contents: %w", walkErr)
 	}
 
-	fmt.Printf("📦 Stack: %s\n", name)
-	fmt.Printf("   Path:        %s\n", path)
-	fmt.Printf("   Files:       %d\n", fileCount)
-	fmt.Printf("   Directories: %d\n", dirCount-1) // -1 to exclude root
-	fmt.Printf("   Modified:    %s\n", info.ModTime().Format("2006-01-02 15:04:05"))
+	ui.Header.Printf("📦 Stack: %s\n", name)
+	ui.Info.Printf("   Path:        %s\n", ui.Path.Render(path))
+	ui.Info.Printf("   Files:       %d\n", fileCount)
+	ui.Info.Printf("   Directories: %d\n", dirCount-1) // -1 to exclude root
+	ui.Info.Printf("   Modified:    %s\n", info.ModTime().Format("2006-01-02 15:04:05"))
 
 	return nil
 }

@@ -2,10 +2,11 @@ package unvar
 
 import (
 	"fmt"
-	varcmd "github.com/rishiyaduwanshi/boiler/internal/cli/var"
-	"github.com/rishiyaduwanshi/boiler/internal/config"
 	"os"
 
+	varcmd "github.com/rishiyaduwanshi/boiler/internal/cli/var"
+	"github.com/rishiyaduwanshi/boiler/internal/config"
+	"github.com/rishiyaduwanshi/boiler/internal/ui"
 	"github.com/rishiyaduwanshi/boiler/internal/utils"
 	"github.com/spf13/cobra"
 )
@@ -22,7 +23,7 @@ Examples:
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := unsetVar(args[0]); err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			ui.Error.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}
 	},
@@ -51,7 +52,7 @@ func unsetVar(rawKey string) error {
 	}
 
 	logger.Info(fmt.Sprintf("Variable removed: %s", key))
-	fmt.Printf("✓ Variable '%s' removed\n", key)
+	ui.Success.Printf("✓ Variable '%s' removed\n", key)
 	return nil
 }
 
