@@ -10,7 +10,7 @@ require (
 	github.com/creack/pty v1.1.24
 	github.com/muesli/termenv v0.16.0
 	github.com/spf13/cobra v1.10.2
-	github.com/spf13/pflag v1.0.10
+	github.com/spf13/pflag v1.1.0
 )
 
 require (
